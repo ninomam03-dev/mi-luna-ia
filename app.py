@@ -129,6 +129,31 @@ PAGE = r"""
   .voice-trigger:hover {background:rgba(205,137,253,.25);}
   .voice-trigger svg {width:17px;height:17px;}
   .ambient-line {width:85%;height:1px;background:linear-gradient(90deg,transparent,rgba(208,153,255,.45),transparent);margin-top:25px;}
+  /* Modo demostración de voz: el holograma responde al volumen del archivo local. */
+  .demo-topbar {border:1px solid var(--l-border,rgba(189,70,255,.4));background:linear-gradient(125deg,rgba(180,92,255,.19),rgba(90,235,255,.08));
+    border-radius:11px;color:var(--l-text,#f8edff);font-size:12px;letter-spacing:.3px;white-space:nowrap;padding:9px 12px;
+    box-shadow:0 0 17px rgba(173,70,255,.10);}
+  .demo-topbar:hover,.demo-topbar.demo-active{box-shadow:0 0 20px rgba(var(--l-primary-rgb,189,70,255),.36);border-color:var(--l-primary,#d186ff);}
+  .shell[data-demo="playing"] .orb {transition:transform .07s ease-out;}
+  .shell[data-demo="playing"] .luna-art {filter:drop-shadow(0 0 22px rgba(var(--l-primary-rgb,189,70,255),.70));}
+  .shell[data-demo="playing"] .waveform {height:45px;}
+  .shell[data-demo="playing"] .waveform i {animation:none !important;transition:height .06s linear;}
+  .demo-overlay {z-index:60;}
+  .demo-dialog {width:min(480px,100%);max-height:92vh;overflow-y:auto;border-color:var(--l-primary,#ba70fb);}
+  .demo-label {display:block;margin:16px 0 7px;color:var(--l-text,#f8eeff);font-size:12px;font-weight:650;}
+  .demo-file {display:block;width:100%;min-width:0;color:var(--l-text,#f8eeff);font-size:12px;padding:12px;
+    background:rgba(130,89,177,.11);border-radius:12px;border:1px solid rgba(205,164,240,.35);}
+  .demo-file::file-selector-button {cursor:pointer;border:1px solid rgba(205,164,240,.45);border-radius:8px;
+    padding:7px 12px;color:var(--l-text,#f8eeff);background:rgba(135,76,193,.24);margin-right:10px;}
+  .demo-file-status {font-size:11px;margin-top:6px;color:#bbaacf;overflow-wrap:anywhere;}
+  .demo-transcript {width:100%;background:rgba(25,13,40,.88);border:1px solid rgba(205,164,240,.37);border-radius:12px;
+    color:#faf1ff;padding:11px;resize:vertical;font-size:12px;line-height:1.45;}
+  .demo-actions {display:flex;gap:9px;margin-top:15px;}
+  .demo-btn {flex:1;min-height:42px;border-radius:11px;border:1px solid rgba(180,140,240,.40);color:#f4e8ff;background:rgba(102,58,148,.25);font-weight:600;}
+  .demo-play {color:#180e24;background:linear-gradient(115deg,var(--l-primary,#bd46ff),var(--l-secondary,#ff52cd));border:none;}
+  .demo-privacy {font-size:11px !important;line-height:1.55;opacity:.85;margin:15px 0 0;}
+  .demo-error {color:#ffd2df !important;margin-bottom:0;}
+  @media(max-width:720px){.demo-topbar{padding:8px;}.demo-topbar span{display:none;}}
   .conversation {display:flex;flex-direction:column;min-width:0;min-height:0;max-height:100%;overflow:hidden;border-left:1px solid var(--line);
     background:linear-gradient(145deg,rgba(18,13,31,.84),rgba(9,8,16,.83));}
   .conversation-head {height:64px;flex:none;display:flex;align-items:center;justify-content:space-between;
@@ -730,6 +755,7 @@ html.eco .luna-art{filter:hue-rotate(var(--l-hue)) saturate(1.03)}
       <span class="pill" id="brainChip">✧ Gemini <b>principal</b> · OpenRouter respaldo</span>
     </div>
     <div class="top-actions">
+      <button class="demo-topbar" id="voiceDemoOpen" type="button" title="Probar una grabación con la animación de Luna">♫ <span id="voiceDemoTopLabel">Probar voz</span></button>
       <button class="icon-button" id="quickTheme" title="Cambiar color de Luna" aria-label="Cambiar tema de color">◈</button>
       <button class="icon-button" id="settingsButton" title="Configuración" aria-label="Configuración">⚙</button>
     </div>
@@ -806,6 +832,24 @@ html.eco .luna-art{filter:hue-rotate(var(--l-hue)) saturate(1.03)}
         <div class="bubble luna"><span class="bubble-label">☾ LUNA</span>Hola, soy Luna. Ya estoy en línea. ¿Qué deseas hacer conmigo esta noche?</div>
       </div>
     </section>
+    <div class="overlay demo-overlay" id="demoOverlay" hidden>
+      <section class="dialog demo-dialog" role="dialog" aria-modal="true" aria-labelledby="demoTitle">
+        <div class="settings-heading"><h2 id="demoTitle">☾ Probar voz de Luna</h2>
+          <button class="settings-close" id="demoClose" type="button" aria-label="Cerrar la prueba">×</button></div>
+        <p class="dialog-note">Elige el audio WAV que generaste con Qwen3-TTS. Luna reproducirá la muestra mientras el núcleo y las barras reaccionan al sonido real.</p>
+        <label class="demo-label" for="demoVoiceFile">1 · Selecciona tu grabación</label>
+        <input class="demo-file" type="file" id="demoVoiceFile" accept="audio/*,.wav,.mp3,.ogg,.m4a">
+        <div class="demo-file-status" id="demoFileStatus">Ningún audio seleccionado.</div>
+        <label class="demo-label" for="demoVoiceText">2 · Texto que escucharás (opcional)</label>
+        <textarea class="demo-transcript" id="demoVoiceText" rows="3" maxlength="600">Hola, ¿cómo estás? Soy Luna. Hoy estoy un poquito cansada, pero me alegra hablar contigo. Cuéntame cómo te fue.</textarea>
+        <div class="demo-actions">
+          <button class="demo-btn demo-play" id="demoPlay" type="button" disabled>▶ Reproducir y animar</button>
+          <button class="demo-btn demo-cancel" id="demoCancel" type="button">Cancelar</button>
+        </div>
+        <p class="demo-privacy">🔒 El audio se reproduce localmente en tu navegador: no se sube a GitHub ni a nuestro servidor. Es una prueba, no clonación en tiempo real.</p>
+        <p class="demo-error" id="demoError" role="alert" hidden></p>
+      </section>
+    </div>
     <div class="overlay" id="settingsOverlay" hidden>
       <section class="dialog" role="dialog" aria-modal="false" aria-labelledby="settingsTitle">
         <div class="settings-heading"><h2 id="settingsTitle">⚙ Ajustes de Luna</h2>
@@ -876,6 +920,24 @@ html.eco .luna-art{filter:hue-rotate(var(--l-hue)) saturate(1.03)}
   const themeGrid = document.getElementById("themeGrid");
   const customColor = document.getElementById("customColor");
   const themeQuick = document.getElementById("quickTheme");
+  const demoOpen = document.getElementById("voiceDemoOpen");
+  const demoTopLabel = document.getElementById("voiceDemoTopLabel");
+  const demoOverlay = document.getElementById("demoOverlay");
+  const demoClose = document.getElementById("demoClose");
+  const demoCancel = document.getElementById("demoCancel");
+  const demoFile = document.getElementById("demoVoiceFile");
+  const demoFileStatus = document.getElementById("demoFileStatus");
+  const demoText = document.getElementById("demoVoiceText");
+  const demoPlay = document.getElementById("demoPlay");
+  const demoError = document.getElementById("demoError");
+  let demoAudio = new Audio();
+  let demoObjectUrl = null;
+  let demoCtx = null;
+  let demoAnalyser = null;
+  let demoBuffer = null;
+  let demoRaf = null;
+  let demoPlaying = false;
+  let demoLastDraw = 0;
   let busy = false;
   let rec = null;
   let elevenUnavailable = false;
@@ -1129,6 +1191,119 @@ html.eco .luna-art{filter:hue-rotate(var(--l-hue)) saturate(1.03)}
     }
   }
 
+  // Reproducción de una muestra LOCAL: jamás se envía al backend.
+  // Se conecta el reproductor al analizador Web Audio para animar las barras reales.
+  function resetDemoBars() {
+    for (const bar of waveBars) {bar.style.removeProperty("height");bar.style.removeProperty("transform");}
+    const orb = document.querySelector(".orb");
+    if (orb) orb.style.removeProperty("transform");
+  }
+  function stopDemo() {
+    if (!demoPlaying && demoAudio.paused) return;
+    demoPlaying = false;
+    demoAudio.pause();
+    try {demoAudio.currentTime = 0;} catch (_) {}
+    if (demoRaf !== null) cancelAnimationFrame(demoRaf);
+    demoRaf = null;
+    if (demoCtx && demoCtx.state === "running") demoCtx.suspend().catch(() => {});
+    shell.dataset.demo = "off";
+    demoTopLabel.textContent = "Probar voz";
+    demoOpen.classList.remove("demo-active");
+    resetDemoBars();
+    setState("idle", "Luna está lista", "La prueba terminó. Puedes continuar conversando.");
+  }
+  function drawDemo(now) {
+    if (!demoPlaying) return;
+    demoRaf = requestAnimationFrame(drawDemo);
+    if (!motionToggle.checked || !demoAnalyser || !demoBuffer || now - demoLastDraw < 50) return;
+    demoLastDraw = now;
+    demoAnalyser.getByteFrequencyData(demoBuffer);
+    let sum = 0;
+    for (let i = 0; i < waveBars.length; i++) {
+      const bin = Math.min(demoBuffer.length-2, 2+Math.floor(i*1.6));
+      const v = (demoBuffer[bin] + demoBuffer[bin+1]) / 510;
+      sum += v;
+      const center = 1-Math.abs(i-(waveBars.length-1)/2)/((waveBars.length-1)/2);
+      const height = Math.round(5 + Math.min(1,v*3.3)*(24+17*center));
+      waveBars[i].style.height = height + "px";
+      waveBars[i].style.transform = "scaleY(1)";
+    }
+    const level = sum / waveBars.length;
+    const orb = document.querySelector(".orb");
+    if (orb) orb.style.transform = "scale("+(1+Math.min(.075,level*.29)).toFixed(3)+")";
+  }
+  function hideDemo() {demoOverlay.hidden = true;}
+  function openDemo() {
+    if (busy || enviandoDictado) return;
+    if (demoPlaying) {stopDemo();return;}
+    if (dictando) stopRecognition(); // No envía el dictado de manera automática.
+    demoError.hidden = true;
+    demoOverlay.hidden = false;
+    demoFile.focus({preventScroll:true});
+  }
+  demoOpen.addEventListener("click",openDemo);
+  demoClose.addEventListener("click",hideDemo);
+  demoCancel.addEventListener("click",hideDemo);
+  demoOverlay.addEventListener("click",e=>{if(e.target===demoOverlay)hideDemo();});
+  demoFile.addEventListener("change",()=>{
+    if (demoPlaying) stopDemo();
+    const file = demoFile.files && demoFile.files[0];
+    if (demoObjectUrl) {URL.revokeObjectURL(demoObjectUrl);demoObjectUrl=null;}
+    demoAudio.removeAttribute("src");demoAudio.load();
+    demoError.hidden = true;
+    if (!file) {demoFileStatus.textContent="Ningún audio seleccionado.";demoPlay.disabled=true;return;}
+    if (file.size > 30*1024*1024) {
+      demoFileStatus.textContent="Archivo demasiado grande (máximo 30 MB).";
+      demoPlay.disabled=true;return;
+    }
+    demoObjectUrl=URL.createObjectURL(file);
+    demoAudio.src=demoObjectUrl;
+    demoFileStatus.textContent="Listo: "+file.name+" · "+(file.size/1024/1024).toFixed(2)+" MB";
+    demoPlay.disabled=false;
+  });
+  demoAudio.addEventListener("ended",stopDemo);
+  demoAudio.addEventListener("error",()=>{
+    if (!demoPlaying) return;
+    stopDemo();
+    setState("idle","Audio no compatible","Selecciona un WAV o MP3 que se reproduzca en Chrome.");
+  });
+  demoPlay.addEventListener("click",async()=>{
+    if (busy || enviandoDictado || !demoObjectUrl || !demoAudio.src) return;
+    demoError.hidden=true;
+    try {
+      const AudioCtx=window.AudioContext || window.webkitAudioContext;
+      if (!demoCtx && AudioCtx) {
+        demoCtx=new AudioCtx();
+        const source=demoCtx.createMediaElementSource(demoAudio);
+        demoAnalyser=demoCtx.createAnalyser();
+        demoAnalyser.fftSize=256;
+        demoAnalyser.smoothingTimeConstant=.65;
+        demoBuffer=new Uint8Array(demoAnalyser.frequencyBinCount);
+        source.connect(demoAnalyser);
+        demoAnalyser.connect(demoCtx.destination);
+      }
+      if (demoCtx && demoCtx.state!=="running") await demoCtx.resume();
+      demoAudio.currentTime=0;
+      await demoAudio.play();
+      demoPlaying=true;
+      hideDemo();
+      shell.dataset.demo="playing";
+      demoTopLabel.textContent="Detener demo";
+      demoOpen.classList.add("demo-active");
+      setState("speaking","Luna está hablando · DEMO","Observa cómo el núcleo responde a la grabación.");
+      const sampleText=demoText.value.trim();
+      if(sampleText) addBubble("luna","🎧 [Prueba de voz] "+sampleText);
+      if(demoRaf!==null)cancelAnimationFrame(demoRaf);
+      demoRaf=requestAnimationFrame(drawDemo);
+    } catch (err) {
+      if(demoCtx && demoCtx.state==="running") demoCtx.suspend().catch(()=>{});
+      demoError.textContent="No se pudo reproducir el archivo. Prueba con un WAV o MP3 diferente. "+(err?.message||"");
+      demoError.hidden=false;
+      demoPlaying=false;
+      shell.dataset.demo="off";
+      resetDemoBars();
+    }
+  });
   function setState(mode, title, detail) {
     shell.dataset.state = mode;
     stateTitle.textContent = title;
@@ -1152,6 +1327,8 @@ html.eco .luna-art{filter:hue-rotate(var(--l-hue)) saturate(1.03)}
   function buttons() {
     sendButton.disabled = busy;
     micButton.disabled = busy;
+    demoOpen.disabled = busy;
+    demoPlay.disabled = busy || !demoObjectUrl;
   }
   function actualizarDictado() {
     input.value = [textoAnterior, ...segmentosGuardados, finalesActuales, parcialActual]
@@ -1268,6 +1445,7 @@ html.eco .luna-art{filter:hue-rotate(var(--l-hue)) saturate(1.03)}
     const message = String(raw || "").trim();
     if (!message || busy) return;
     busy = true;
+    if (demoPlaying) stopDemo();
     stopRecognition();
     buttons();
     addBubble("user", message);
@@ -1381,6 +1559,7 @@ html.eco .luna-art{filter:hue-rotate(var(--l-hue)) saturate(1.03)}
 
   function listen() {
     if (busy || enviandoDictado) return;
+    if (demoPlaying) stopDemo();
     if (dictando) { terminarYEnviar(); return; }
     if (!SpeechRecognition) {
       setState("idle", "Micrófono no disponible", "Utiliza Chrome con reconocimiento de voz o escribe tu mensaje.");
@@ -1405,7 +1584,10 @@ html.eco .luna-art{filter:hue-rotate(var(--l-hue)) saturate(1.03)}
   document.getElementById("navSettings").addEventListener("click",showSettings);
   document.getElementById("closeSettings").addEventListener("click",hideSettings);
   settings.addEventListener("click",e=>{if(e.target===settings)hideSettings();});
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!settings.hidden)hideSettings();});
+  document.addEventListener("keydown",e=>{
+    if(e.key==="Escape"&&!demoOverlay.hidden)hideDemo();
+    else if(e.key==="Escape"&&!settings.hidden)hideSettings();
+  });
   motionToggle.addEventListener("change",()=>{
     document.documentElement.classList.toggle("motion-off", !motionToggle.checked);
     document.documentElement.style.setProperty("--motion-play", motionToggle.checked ? "running" : "paused");
