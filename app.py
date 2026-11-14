@@ -1,4 +1,3 @@
-
 # Luna AI — Cyber Celestial UI
 # Apariencia nueva. Chat, voz, dictado y cerebros conservados.
 # Cerebros disponibles: Claude, GPT, Gemini, OpenRouter (con respaldo automático).
