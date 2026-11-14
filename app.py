@@ -10,7 +10,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
-from flask import Flask, Response, jsonify, render_template_string, request
+from flask import Flask, Response, jsonify, request
 
 app = Flask(__name__)
 
@@ -285,7 +285,7 @@ $('#stage').ondragover=e=>e.preventDefault();$('#stage').ondrop=e=>{e.preventDef
 
 @app.get("/")
 def home():
-    return render_template_string(PAGE)
+    return Response(PAGE, mimetype="text/html")
 
 
 # ==========================================
