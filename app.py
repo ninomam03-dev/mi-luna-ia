@@ -230,6 +230,7 @@ function loop(ms){requestAnimationFrame(loop);if(document.hidden)return;const t=
  if(mic){mic.an.getByteFrequencyData(mic.d);tg=Math.min(1,mic.d.reduce((a,b)=>a+b,0)/mic.d.length/90)}
  level+=(tg-level)*Math.min(1,dt*8);pm+=(pal-pm)*Math.min(1,dt*3);mf+=((mode==='avatar'?1:0)-mf)*Math.min(1,dt*4);drawCore(t);drawPanels(t);app.style.setProperty('--lv',level.toFixed(3))}
 resize();requestAnimationFrame(loop);
+if('speechSynthesis' in window){speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices()}
 const LBL={idle:'Lista',listening:'Escuchando',thinking:'Pensando',speaking:'Hablando'};
 function setState(s){state=s;$('#st').dataset.s=s;$('#stt').textContent=LBL[s]}
 function setMode(m){mode=m;modeT=performance.now();if(m==='avatar'){const v=$('#av');v.classList.remove('rev');void v.offsetWidth;v.classList.add('rev')}app.dataset.mode=m;document.querySelectorAll('.tog button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===m))}
@@ -237,8 +238,14 @@ $('#hr').oninput=e=>app.style.setProperty('--h',e.target.value/100);
 $('#pal').onclick=()=>{pal=pal?0:1};
 document.querySelectorAll('.tog button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
 function add(who,txt){const d=document.createElement('div');d.className='m '+who;d.textContent=txt;$('#log').append(d);$('#log').hidden=false;$('#log').scrollTop=1e5}
+function pickFemaleVoice(){const vs=speechSynthesis.getVoices().filter(v=>v.lang.toLowerCase().startsWith('es'));if(!vs.length)return null;
+ const fem=/female|mujer|femenin|sabina|helena|laura|monica|mónica|paulina|lucia|lucía|elvira|marisol|esperanza|isabela|camila|valentina|zira|salli|carmen/i;
+ const male=/male|hombre|masculin|jorge|pablo|diego|raul|raúl|carlos|miguel|juan|george|enrique|alonso/i;
+ let v=vs.find(v=>fem.test(v.name));if(v)return v;
+ v=vs.find(v=>!male.test(v.name));if(v)return v;
+ return vs[0]}
 function speak(a){if(!('speechSynthesis' in window)){setState('speaking');setTimeout(()=>setState('idle'),2500);return}
- const u=new SpeechSynthesisUtterance(a);u.lang='es-ES';const v=speechSynthesis.getVoices().find(v=>v.lang.startsWith('es'));if(v)u.voice=v;u.pitch=1.1;
+ const u=new SpeechSynthesisUtterance(a);u.lang='es-ES';const v=pickFemaleVoice();if(v){u.voice=v;u.lang=v.lang}u.pitch=1.25;
  u.onstart=()=>setState('speaking');u.onend=u.onerror=()=>setState('idle');speechSynthesis.cancel();speechSynthesis.speak(u)}
 async function ask(q){setState('thinking');let a;
  try{const r=await fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q,character:cur,persona:CH[cur].persona,model_preference:'gemini'})});const j=await r.json();if(!r.ok)throw new Error(j.error||'Error del servidor');a=j.reply}
