@@ -600,15 +600,17 @@ def chat():
 # ==========================================
 
 EDGE_VOICES = {
-    "dracona": "es-ES-ElviraNeural",   # voz firme, elegante (España)
-    "rem": "es-MX-DaliaNeural",        # voz suave, cálida (México) — Aurora
+    # Dracona: más joven y enérgica, tono subido y un poco más rápida -> más viva y "sassy".
+    "dracona": {"voice": "es-MX-CandelaNeural", "rate": "+10%", "pitch": "+15Hz"},
+    # Aurora: dulce y suave, tono subido más alto y un poco más lenta -> más tierna y tímida.
+    "rem": {"voice": "es-CO-SalomeNeural", "rate": "-6%", "pitch": "+22Hz"},
 }
-EDGE_VOICE_DEFAULT = "es-ES-ElviraNeural"
+EDGE_VOICE_DEFAULT = {"voice": "es-MX-CandelaNeural", "rate": "+10%", "pitch": "+15Hz"}
 
 
-async def _edge_tts_bytes(text, voice):
+async def _edge_tts_bytes(text, voice, rate="+0%", pitch="+0Hz"):
     import edge_tts
-    communicate = edge_tts.Communicate(text, voice=voice)
+    communicate = edge_tts.Communicate(text, voice=voice, rate=rate, pitch=pitch)
     audio = bytearray()
     async for chunk in communicate.stream():
         if chunk.get("type") == "audio":
@@ -626,10 +628,20 @@ def speak():
         return jsonify(error="No hay texto para convertir a voz."), 400
 
     voice_override = str(data.get("voice", "")).strip()
-    voice = voice_override or EDGE_VOICES.get(character, EDGE_VOICE_DEFAULT)
+    if voice_override:
+        # Desde /voces: una voz específica a probar, con tono/velocidad normales
+        # salvo que también se pidan ajustes explícitos.
+        voice = voice_override
+        rate = str(data.get("rate", "+0%"))
+        pitch = str(data.get("pitch", "+0Hz"))
+    else:
+        cfg = EDGE_VOICES.get(character, EDGE_VOICE_DEFAULT)
+        voice = cfg["voice"]
+        rate = cfg["rate"]
+        pitch = cfg["pitch"]
 
     try:
-        audio = asyncio.run(_edge_tts_bytes(text[:2000], voice))
+        audio = asyncio.run(_edge_tts_bytes(text[:2000], voice, rate, pitch))
         if not audio:
             raise RuntimeError("edge-tts devolvió audio vacío")
         return Response(audio, mimetype="audio/mpeg")
