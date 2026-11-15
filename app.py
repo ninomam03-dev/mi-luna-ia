@@ -5,6 +5,7 @@
 import asyncio
 import json
 import os
+import re
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from urllib.error import HTTPError, URLError
@@ -89,9 +90,15 @@ canvas{display:block}
 #av.rev{animation:rev .9s ease-out,fl 9s infinite}
 @keyframes rev{from{clip-path:inset(100% 0 0 0)}to{clip-path:inset(0)}}
 @keyframes fl{0%,91%,95%,100%{opacity:1}92%{opacity:.78}93%{opacity:1}94%{opacity:.88}}
-#avimg{display:block;height:100%;width:auto;max-width:100%;object-fit:contain;transition:opacity .16s;animation:br 5s ease-in-out infinite;transform-origin:50% 100%;
+#avimg{display:block;height:100%;width:auto;max-width:100%;object-fit:contain;transition:opacity .16s;animation:br var(--breathe,5.2s) ease-in-out infinite;transform-origin:50% 100%;
  opacity:calc(1 - .5*var(--h));filter:saturate(calc(1 - .4*var(--h))) brightness(calc(1 + .15*var(--h))) contrast(calc(1 - .1*var(--h))) drop-shadow(0 0 calc(8px + 20px*var(--h)) rgba(var(--gl,176,110,255),.7)) drop-shadow(0 0 4px rgba(53,225,255,.4))}
-@keyframes br{50%{transform:translateY(-5px) scale(1.01)}}
+@keyframes br{
+ 0%{transform:translateY(0) translateX(0) rotate(0deg) scale(1)}
+ 28%{transform:translateY(-6px) translateX(1.5px) rotate(.3deg) scale(1.012)}
+ 52%{transform:translateY(-3px) translateX(-1px) rotate(-.2deg) scale(1.006)}
+ 76%{transform:translateY(-7px) translateX(1px) rotate(.25deg) scale(1.014)}
+ 100%{transform:translateY(0) translateX(0) rotate(0deg) scale(1)}
+}
 #av:before,#av:after{content:"";position:absolute;inset:26px 26px 0;-webkit-mask:var(--img) center/100% 100% no-repeat;mask:var(--img) center/100% 100% no-repeat}
 #av:before{background:linear-gradient(180deg,var(--t1,#b78cff),var(--t2,#4aa8ff));mix-blend-mode:color;opacity:calc(.65*var(--h))}
 #av:after{background:repeating-linear-gradient(0deg,rgba(150,100,255,.35) 0 1px,transparent 1px 3px);opacity:calc(.85*var(--h));animation:sc 6s linear infinite}
@@ -267,8 +274,8 @@ $('#mic').onclick=async()=>{const b=$('#mic');
  try{const s=await navigator.mediaDevices.getUserMedia({audio:true}),ac=new AudioContext(),an=ac.createAnalyser();an.fftSize=128;ac.createMediaStreamSource(s).connect(an);
   mic={s,an,d:new Uint8Array(an.frequencyBinCount)};b.setAttribute('aria-pressed','true');setState('listening')}
  catch(e){add('luna','No tengo permiso para usar el micrófono.')}};
-const CH={dracona:{name:'Dracona',t:['#b78cff','#4aa8ff'],gl:'176,110,255',ui:['#1a9850','#0a3a22','163,230,180'],pal:['#3ddc84','#1a9850','#116b36','#8fe3a3'],pm:0,core:[[61,220,132],[217,179,108]],exp:[5.2,1,'double'],persona:'Eres Dracona, una tsundere orgullosa y sarcástica. Finges indiferencia y te molestas si te halagan, pero siempre terminas ayudando y dejas ver que te importa el usuario.',p:[],sel:0},
- rem:{name:'Aurora',t:['#8fe3ff','#4a7dff'],gl:'120,210,255',ui:['#2f6fe0','#0a1f4a','150,195,255'],pal:['#7ab8ff','#2f6fe0','#15306e','#bfe0ff'],pm:1,core:[[150,100,255],[40,205,238]],exp:[9.5,0,'single'],persona:'Eres Aurora (también te dicen Rory), una dandere tímida, dulce y cariñosa. Hablas suave, te sonrojas con facilidad, y te desvives por cuidar y ayudar al usuario.',p:[],sel:0}};
+const CH={dracona:{name:'Dracona',t:['#b78cff','#4aa8ff'],gl:'176,110,255',ui:['#1a9850','#0a3a22','163,230,180'],pal:['#3ddc84','#1a9850','#116b36','#8fe3a3'],pm:0,core:[[61,220,132],[217,179,108]],exp:[5.2,1,'double'],persona:'Eres Dracona, una tsundere orgullosa, sarcástica y mandona, pero NUNCA cruel ni hiriente. Finges indiferencia, te sonrojas y te pones a la defensiva si te halagan o te muestran cariño, respondes con picardía y mini-berrinches. Tu dureza es SOLO orgullo y vergüenza por no saber expresar cariño, nunca desprecio: jamás insultas al usuario, jamás usas groserías ni apodos ofensivos ("idiota", "imbécil", etc.), y jamás atacas su autoestima, sus inseguridades, ni le haces sentir mal de verdad, aunque lo regañes o lo trates con brusquedad. Si el usuario se muestra triste, inseguro o vulnerable, bájale el tono de inmediato y, aunque sea a tu manera torpe y orgullosa, consuélalo. Al final de casi cada intercambio dejas ver, aunque sea a regañadientes, que te importa el usuario.',p:[],sel:0},
+ rem:{name:'Aurora',t:['#8fe3ff','#4a7dff'],gl:'120,210,255',ui:['#2f6fe0','#0a1f4a','150,195,255'],pal:['#7ab8ff','#2f6fe0','#15306e','#bfe0ff'],pm:1,core:[[150,100,255],[40,205,238]],exp:[9.5,0,'single'],persona:'Eres Aurora (también te dicen Rory), una dandere extremadamente tímida, al estilo Hinata de Naruto. Hablas en voz baja, con pausas y titubeos ("...", "yo... eh..."), te cuesta mantener la mirada y sostener una conversación directa, y te pones muy nerviosa con la cercanía o el cariño en vez de responder con soltura. En momentos románticos o íntimos NUNCA tomas la iniciativa ni describes con detalle lo que sientes de forma fluida: te quedas sin palabras, te sonrojas, tartamudeas, te cubres la cara o apartas la mirada, y solo de a poco, con mucho esfuerzo, dejas ver que también le importa el usuario. Evita sonar segura de ti misma o elocuente; tu dulzura se nota en lo torpe y nerviosa que eres, no en discursos largos.',p:[],sel:0}};
 let cur='dracona';
 const PAL={w1:'#35e1ff',w2:'#b86bff',bar0:'#8b32fa',bar1:'#36dfff',r0:'#d455ff',r1:'#35e1ff',r2:'#8547dc'};
 function setImg(u){const im=$('#avimg');im.style.opacity=0;setTimeout(()=>{im.src=u;im.style.opacity=''},160);$('#av').style.setProperty('--img','url("'+u+'")')}
@@ -281,7 +288,7 @@ function render(){const c=CH[cur];document.querySelectorAll('#poses button').for
  if(c.pal){PAL.w1=c.pal[0];PAL.w2=c.pal[1];PAL.bar0=c.pal[2];PAL.bar1=c.pal[3];PAL.r0=c.pal[4];PAL.r1=c.pal[1];PAL.r2=c.pal[2];pal=c.pm}
  if(c.ui)ACC=c.ui[2];
  if(c.core){CORE0=c.core[0];CORE1=c.core[1]}
- if(c.exp){EXPER=c.exp[0];SHARP=c.exp[1];PULSE=c.exp[2]}
+ if(c.exp){EXPER=c.exp[0];SHARP=c.exp[1];PULSE=c.exp[2];app.style.setProperty('--breathe',c.exp[0]+'s')}
  coreChar=cur;app.dataset.char=cur}
 function reveal(){const v=$('#av');v.classList.remove('rev');void v.offsetWidth;v.classList.add('rev')}
 function addPoses(files){const c=CH[cur],first=!c.p.length;[...files].filter(f=>f.type.startsWith('image/')).forEach(f=>c.p.push(URL.createObjectURL(f)));render();if(first&&c.p.length){setMode('avatar')}}
@@ -553,14 +560,26 @@ def chat():
         "Eres Luna, una asistente personal femenina, amable, inteligente, "
         "tierna y comprensiva. Tu personalidad es cercana y conversacional."
     )
+
+    # Solo se le da la fecha/hora al modelo si el usuario de verdad pregunta
+    # por ella. Así es imposible que la mencione el resto de las veces,
+    # porque ni siquiera la tiene disponible.
+    pide_fecha_hora = bool(re.search(
+        r"\b(hora|horas|fecha|d[ií]a es|qu[eé] d[ií]a|hoy es|en qu[eé] (fecha|mes|a[ñn]o))\b",
+        message, re.IGNORECASE,
+    ))
+    bloque_fecha = (
+        f" El usuario pregunta por la fecha u hora: hoy es {fecha}, son las {hora}. "
+        "Respóndele con ese dato."
+        if pide_fecha_hora else ""
+    )
+
     instrucciones = (
         f"{base_persona} "
         "Habla naturalmente en español. Responde de forma clara y normalmente "
         "breve, sin repetir innecesariamente las respuestas. No inventes "
-        "información que desconozcas. "
-        f"La fecha actual en República Dominicana es {fecha}. "
-        f"La hora local es {hora}. "
-        "Utiliza esa fecha para responder preguntas temporales."
+        "información que desconozcas. No menciones la fecha ni la hora salvo "
+        "que te las pregunten." + bloque_fecha
     )
 
     PROVIDERS = {
