@@ -306,6 +306,82 @@ def home():
 
 
 # ==========================================
+# PÁGINA DE PRUEBAS DE VOCES (/voces)
+# Para escuchar varias opciones y elegir, sin redesplegar nada.
+# ==========================================
+
+VOICES_PAGE = r"""
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Luna AI — Probar voces</title>
+<style>
+  body{margin:0;background:#0b0812;color:#f5f7ff;font:15px/1.5 system-ui,sans-serif;padding:24px;max-width:720px;margin:0 auto}
+  h1{font-size:20px}
+  p.hint{color:#a89ab4;font-size:13px}
+  textarea{width:100%;min-height:70px;background:#150f22;color:#fff;border:1px solid #4a3566;border-radius:10px;padding:10px;box-sizing:border-box;font:inherit}
+  .row{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #2a2240}
+  .row b{min-width:230px}
+  .row span{color:#9b8bb0;font-size:12px;flex:1}
+  button{background:linear-gradient(135deg,#ae77ee,#e5a5e7);color:#1a1021;border:0;border-radius:9px;padding:9px 16px;font-weight:700;cursor:pointer}
+  button:disabled{opacity:.5;cursor:wait}
+  .err{color:#ffb4c6;font-size:13px;margin-top:6px}
+</style>
+</head>
+<body>
+<h1>☾ Probar voces de Luna</h1>
+<p class="hint">Escribe un texto de prueba y dale "Escuchar" a cada voz. Cuando encuentres las que te gusten (una para Dracona, otra para Aurora), dime el nombre exacto y las dejo fijas en el código.</p>
+<textarea id="t">Hola, soy Luna. Esta es una prueba de mi voz, dime qué te parece.</textarea>
+<div id="list"></div>
+<p class="err" id="err"></p>
+<script>
+const voices=[
+ ["es-ES-ElviraNeural","España · adulta, firme y elegante (la actual de Dracona)"],
+ ["es-ES-AbrilNeural","España · joven, alegre"],
+ ["es-MX-DaliaNeural","México · adulta, cálida (la actual de Aurora)"],
+ ["es-MX-CandelaNeural","México · joven, enérgica"],
+ ["es-MX-BeatrizNeural","México · adulta, suave"],
+ ["es-AR-ElenaNeural","Argentina · cálida, acento marcado"],
+ ["es-CO-SalomeNeural","Colombia · joven, dulce"],
+ ["es-VE-PaolaNeural","Venezuela · joven"],
+ ["es-DO-RamonaNeural","República Dominicana · acento local"],
+ ["es-PE-CamilaNeural","Perú · joven"],
+ ["es-CL-CatalinaNeural","Chile · joven"],
+ ["es-US-PalomaNeural","EE.UU. (español neutro) · joven"],
+];
+const list=document.getElementById('list');
+const err=document.getElementById('err');
+voices.forEach(([id,desc])=>{
+  const row=document.createElement('div');row.className='row';
+  const b=document.createElement('b');b.textContent=id;
+  const s=document.createElement('span');s.textContent=desc;
+  const btn=document.createElement('button');btn.textContent='▶ Escuchar';
+  btn.onclick=async()=>{
+    err.textContent='';btn.disabled=true;btn.textContent='Generando...';
+    try{
+      const r=await fetch('/api/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:document.getElementById('t').value,voice:id})});
+      if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'Error del servidor')}
+      const blob=await r.blob();const url=URL.createObjectURL(blob);const audio=new Audio(url);
+      await audio.play();
+    }catch(e){err.textContent='Error con '+id+': '+e.message}
+    finally{btn.disabled=false;btn.textContent='▶ Escuchar'}
+  };
+  row.append(b,s,btn);list.appendChild(row);
+});
+</script>
+</body>
+</html>
+"""
+
+
+@app.get("/voces")
+def voces():
+    return Response(VOICES_PAGE, mimetype="text/html")
+
+
+# ==========================================
 # LUNA AI — Selección de cerebro con respaldo
 # Sin cambiar las claves existentes en Render.
 # ==========================================
@@ -549,7 +625,8 @@ def speak():
     if not text:
         return jsonify(error="No hay texto para convertir a voz."), 400
 
-    voice = EDGE_VOICES.get(character, EDGE_VOICE_DEFAULT)
+    voice_override = str(data.get("voice", "")).strip()
+    voice = voice_override or EDGE_VOICES.get(character, EDGE_VOICE_DEFAULT)
 
     try:
         audio = asyncio.run(_edge_tts_bytes(text[:2000], voice))
