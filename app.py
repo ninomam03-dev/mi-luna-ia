@@ -2,12 +2,12 @@
 # Apariencia nueva. Chat, voz, dictado y cerebros conservados.
 # Cerebros disponibles: Claude, GPT, Gemini, OpenRouter (con respaldo automático).
 
+import asyncio
 import json
 import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from urllib.error import HTTPError, URLError
-from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 from flask import Flask, Response, jsonify, request
@@ -244,9 +244,19 @@ function pickFemaleVoice(){const vs=speechSynthesis.getVoices().filter(v=>v.lang
  let v=vs.find(v=>fem.test(v.name));if(v)return v;
  v=vs.find(v=>!male.test(v.name));if(v)return v;
  return vs[0]}
-function speak(a){if(!('speechSynthesis' in window)){setState('speaking');setTimeout(()=>setState('idle'),2500);return}
+function speakBrowser(a){if(!('speechSynthesis' in window)){setState('speaking');setTimeout(()=>setState('idle'),2500);return}
  const u=new SpeechSynthesisUtterance(a);u.lang='es-ES';const v=pickFemaleVoice();if(v){u.voice=v;u.lang=v.lang}u.pitch=1.25;
  u.onstart=()=>setState('speaking');u.onend=u.onerror=()=>setState('idle');speechSynthesis.cancel();speechSynthesis.speak(u)}
+async function speak(a){
+ try{
+  const r=await fetch('/api/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:a,character:cur})});
+  if(!r.ok)throw new Error('sin voz elevenlabs');
+  const blob=await r.blob();const url=URL.createObjectURL(blob);const audio=new Audio(url);
+  setState('speaking');
+  audio.onended=audio.onerror=()=>{URL.revokeObjectURL(url);setState('idle')};
+  await audio.play();
+ }catch(e){speakBrowser(a)}
+}
 async function ask(q){setState('thinking');let a;
  try{const r=await fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q,character:cur,persona:CH[cur].persona,model_preference:'gemini'})});const j=await r.json();if(!r.ok)throw new Error(j.error||'Error del servidor');a=j.reply}
  catch(e){a='No pude conectar con mi cerebro. '+(e.message||'')}
@@ -508,121 +518,47 @@ def chat():
 
 
 # ==========================================
-# VOZ DE LUNA: ELEVENLABS
+# VOZ DE LUNA: EDGE-TTS (gratis, sin clave, sin tokens)
+# Usa el mismo servicio de voces neuronales de Microsoft Edge.
+# Una voz distinta por personaje.
 # ==========================================
+
+EDGE_VOICES = {
+    "dracona": "es-ES-ElviraNeural",   # voz firme, elegante (España)
+    "rem": "es-MX-DaliaNeural",        # voz suave, cálida (México) — Aurora
+}
+EDGE_VOICE_DEFAULT = "es-ES-ElviraNeural"
+
+
+async def _edge_tts_bytes(text, voice):
+    import edge_tts
+    communicate = edge_tts.Communicate(text, voice=voice)
+    audio = bytearray()
+    async for chunk in communicate.stream():
+        if chunk.get("type") == "audio":
+            audio.extend(chunk["data"])
+    return bytes(audio)
+
 
 @app.post("/api/speak")
 def speak():
-
     data = request.get_json(silent=True) or {}
     text = str(data.get("text", "")).strip()
+    character = str(data.get("character", "")).strip().lower()
 
     if not text:
-        return jsonify(
-            error="No hay texto para convertir a voz."
-        ), 400
+        return jsonify(error="No hay texto para convertir a voz."), 400
 
-    api_key = os.environ.get(
-        "ELEVENLABS_API_KEY", ""
-    ).strip()
-
-    voice_id = os.environ.get(
-        "ELEVENLABS_VOICE_ID", ""
-    ).strip()
-
-    if not api_key or not voice_id:
-        return jsonify(
-            error="Falta configurar ElevenLabs."
-        ), 503
-
-    url = (
-        "https://api.elevenlabs.io/v1/text-to-speech/"
-        f"{quote(voice_id, safe='')}"
-        "?output_format=mp3_44100_128"
-    )
-
-    payload = {
-        "text": text[:2000],
-        "model_id": "eleven_multilingual_v2"
-    }
-
-    api_request = Request(
-        url,
-        data=json.dumps(
-            payload
-        ).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "Accept": "audio/mpeg",
-            "xi-api-key": api_key
-        },
-        method="POST"
-    )
+    voice = EDGE_VOICES.get(character, EDGE_VOICE_DEFAULT)
 
     try:
-        with urlopen(
-            api_request,
-            timeout=30
-        ) as response:
-            audio = response.read()
-
-        return Response(
-            audio,
-            mimetype="audio/mpeg"
-        )
-
-    except HTTPError as error:
-
-        raw = error.read().decode(
-            "utf-8",
-            errors="replace"
-        )
-
-        try:
-            error_data = json.loads(raw)
-        except json.JSONDecodeError:
-            error_data = {}
-
-        if not isinstance(error_data, dict):
-            error_data = {}
-
-        detail = error_data.get("detail", {})
-
-        if isinstance(detail, dict):
-            error_code = (
-                detail.get("status")
-                or detail.get("code")
-                or "desconocido"
-            )
-
-            error_message = (
-                detail.get("message")
-                or "Sin detalles"
-            )
-
-        elif isinstance(detail, str):
-            error_code = "desconocido"
-            error_message = detail
-
-        else:
-            error_code = "desconocido"
-            error_message = "Sin detalles"
-
-        app.logger.error(
-            "ElevenLabs HTTP %s | %s | %s",
-            error.code,
-            error_code,
-            str(error_message)[:200]
-        )
-
-        return jsonify(
-            error=f"ElevenLabs: {error_code}"
-        ), 502
-
-    except (URLError, TimeoutError):
-        return jsonify(
-            error="No se pudo conectar con ElevenLabs."
-        ), 502
+        audio = asyncio.run(_edge_tts_bytes(text[:2000], voice))
+        if not audio:
+            raise RuntimeError("edge-tts devolvió audio vacío")
+        return Response(audio, mimetype="audio/mpeg")
+    except Exception as error:
+        app.logger.warning("edge-tts no pudo generar audio: %s", str(error)[:200])
+        return jsonify(error="Voz no disponible por ahora."), 502
 
 
 # ==========================================
