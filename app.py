@@ -426,7 +426,7 @@ def _openrouter_answer(message, instrucciones):
     if not key:
         raise RuntimeError("OpenRouter sin clave configurada")
     payload = {
-        "model": "openrouter/free",
+        "model": "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
         "messages": [
             {"role": "system", "content": instrucciones},
             {"role": "user", "content": message},
