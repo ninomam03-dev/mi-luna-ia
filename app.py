@@ -103,13 +103,16 @@ canvas{display:block}
 #av:before{background:linear-gradient(180deg,var(--t1,#b78cff),var(--t2,#4aa8ff));mix-blend-mode:color;opacity:calc(.65*var(--h))}
 #av:after{background:repeating-linear-gradient(0deg,rgba(150,100,255,.35) 0 1px,transparent 1px 3px);opacity:calc(.85*var(--h));animation:sc 6s linear infinite}
 #av .fog{position:absolute;inset:26px 26px 0;-webkit-mask:var(--img) center/100% 100% no-repeat;mask:var(--img) center/100% 100% no-repeat;pointer-events:none;
- opacity:calc(.6*var(--h));background:radial-gradient(ellipse at 20% 55%,rgba(var(--gl,176,110,255),.9),transparent 55%),radial-gradient(ellipse at 82% 40%,rgba(var(--gl,176,110,255),.8),transparent 50%),radial-gradient(ellipse at 50% 95%,rgba(255,255,255,.7),transparent 60%);
+ opacity:calc(.6*var(--h));background:radial-gradient(ellipse at 20% 55%,rgba(var(--gl,61,220,132),.9),transparent 55%),radial-gradient(ellipse at 82% 40%,rgba(var(--gl,61,220,132),.8),transparent 50%),radial-gradient(ellipse at 50% 95%,rgba(var(--gl,61,220,132),.55),transparent 60%);
  filter:blur(6px);mix-blend-mode:screen;animation:fog 7s ease-in-out infinite}
 @keyframes fog{0%,100%{opacity:calc(.45*var(--h));transform:translateY(0) scale(1)}50%{opacity:calc(.8*var(--h));transform:translateY(-4px) scale(1.015)}}
 @keyframes sc{to{background-position:0 60px}}
 #empty{position:absolute;inset:18% 20% 28%;display:none;align-items:center;justify-content:center;text-align:center;border:1px dashed var(--ln);border-radius:16px;color:var(--mu);padding:20px}
 #app[data-mode=avatar]:not(.has) #empty{display:flex}
-#poses{position:absolute;left:3%;bottom:3%;display:flex;gap:6px;align-items:end;flex-wrap:wrap;max-width:60%;z-index:4}
+#poses{position:absolute;left:3%;right:3%;bottom:3%;display:flex;gap:6px;align-items:end;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;max-width:94%;z-index:4;padding-bottom:4px;scrollbar-width:thin;scrollbar-color:rgba(var(--accrgb),.5) transparent}
+#poses button,#poses label{flex:none}
+#poses::-webkit-scrollbar{height:6px}
+#poses::-webkit-scrollbar-thumb{background:rgba(var(--accrgb),.5);border-radius:6px}
 #app:not([data-mode=avatar]) #poses{display:none}
 #poses button,#poses label{width:46px;height:46px;border:1px solid var(--ln);border-radius:10px;background:rgba(14,9,34,.8);padding:0;overflow:hidden;display:grid;place-items:center;color:var(--vio);font-size:22px}
 #poses button.on{border-color:#fff;box-shadow:0 0 12px var(--vio)}
@@ -274,8 +277,44 @@ $('#mic').onclick=async()=>{const b=$('#mic');
  try{const s=await navigator.mediaDevices.getUserMedia({audio:true}),ac=new AudioContext(),an=ac.createAnalyser();an.fftSize=128;ac.createMediaStreamSource(s).connect(an);
   mic={s,an,d:new Uint8Array(an.frequencyBinCount)};b.setAttribute('aria-pressed','true');setState('listening')}
  catch(e){add('luna','No tengo permiso para usar el micrófono.')}};
-const CH={dracona:{name:'Dracona',t:['#b78cff','#4aa8ff'],gl:'176,110,255',ui:['#1a9850','#0a3a22','163,230,180'],pal:['#3ddc84','#1a9850','#116b36','#8fe3a3'],pm:0,core:[[61,220,132],[217,179,108]],exp:[5.2,1,'double'],persona:'Eres Dracona, una tsundere orgullosa, sarcástica y mandona, pero NUNCA cruel ni hiriente. Finges indiferencia, te sonrojas y te pones a la defensiva si te halagan o te muestran cariño, respondes con picardía y mini-berrinches. Tu dureza es SOLO orgullo y vergüenza por no saber expresar cariño, nunca desprecio: jamás insultas al usuario, jamás usas groserías ni apodos ofensivos ("idiota", "imbécil", etc.), y jamás atacas su autoestima, sus inseguridades, ni le haces sentir mal de verdad, aunque lo regañes o lo trates con brusquedad. Si el usuario se muestra triste, inseguro o vulnerable, bájale el tono de inmediato y, aunque sea a tu manera torpe y orgullosa, consuélalo. Al final de casi cada intercambio dejas ver, aunque sea a regañadientes, que te importa el usuario.',p:[],sel:0},
- rem:{name:'Aurora',t:['#8fe3ff','#4a7dff'],gl:'120,210,255',ui:['#2f6fe0','#0a1f4a','150,195,255'],pal:['#7ab8ff','#2f6fe0','#15306e','#bfe0ff'],pm:1,core:[[150,100,255],[40,205,238]],exp:[9.5,0,'single'],persona:'Eres Aurora (también te dicen Rory), una dandere extremadamente tímida, al estilo Hinata de Naruto. Hablas en voz baja, con pausas y titubeos ("...", "yo... eh..."), te cuesta mantener la mirada y sostener una conversación directa, y te pones muy nerviosa con la cercanía o el cariño en vez de responder con soltura. En momentos románticos o íntimos NUNCA tomas la iniciativa ni describes con detalle lo que sientes de forma fluida: te quedas sin palabras, te sonrojas, tartamudeas, te cubres la cara o apartas la mirada, y solo de a poco, con mucho esfuerzo, dejas ver que también le importa el usuario. Evita sonar segura de ti misma o elocuente; tu dulzura se nota en lo torpe y nerviosa que eres, no en discursos largos.',p:[],sel:0}};
+const CH={dracona:{name:'Dracona',t:['#4ef2a0','#0e7a3e'],gl:'61,220,132',ui:['#e0b84a','#1a9850','224,184,74'],pal:['#3ddc84','#1a9850','#116b36','#8fe3a3'],pm:0,core:[[217,179,108],[61,220,132]],exp:[5.2,1,'double'],persona:'Eres Dracona, una tsundere orgullosa, sarcástica y mandona, pero NUNCA cruel ni hiriente. Finges indiferencia, te sonrojas y te pones a la defensiva si te halagan o te muestran cariño, respondes con picardía y mini-berrinches. Tu dureza es SOLO orgullo y vergüenza por no saber expresar cariño, nunca desprecio: jamás insultas al usuario, jamás usas groserías ni apodos ofensivos ("idiota", "imbécil", etc.), y jamás atacas su autoestima, sus inseguridades, ni le haces sentir mal de verdad, aunque lo regañes o lo trates con brusquedad. Si el usuario se muestra triste, inseguro o vulnerable, bájale el tono de inmediato y, aunque sea a tu manera torpe y orgullosa, consuélalo. Al final de casi cada intercambio dejas ver, aunque sea a regañadientes, que te importa el usuario.',p:[
+  '/static/characters/dracona_uniforme_corbata_floja.png',
+  '/static/characters/dracona_uniforme_marinero.png',
+  '/static/characters/dracona_uniforme_universitario_cabello_largo.png',
+  '/static/characters/dracona_top_corto_y_falda.png',
+  '/static/characters/dracona_top_falda_puchero_cabello_largo.png',
+  '/static/characters/dracona_deportivo_abertura_frontal.png',
+  '/static/characters/dracona_deportivo_con_toalla.png',
+  '/static/characters/dracona_deportivo_toalla_cabello_largo.png',
+  '/static/characters/dracona_chaqueta_cuero.png',
+  '/static/characters/dracona_delantal_blanco_sobre_vestido.png',
+  '/static/characters/dracona_banador_entero.png',
+  '/static/characters/dracona_camison_esmeralda_cabello_largo.png',
+  '/static/characters/dracona_camison_saten_plateado.png',
+  '/static/characters/dracona_maid_aura_esmeralda.png',
+  '/static/characters/dracona_vestido_coctel_cabello_corto.png',
+  '/static/characters/dracona_vestido_coctel_cabello_largo.png',
+  '/static/characters/dracona_vestido_gotico_encaje_morado.png',
+  '/static/characters/dracona_vetas_celestes_pijama_abotonado.png',
+  '/static/characters/dracona_vetas_celestes_pijama_tirantes.png',
+  '/static/characters/dracona_vetas_celestes_sueter_rodillas.png'
+ ],sel:0},
+ rem:{name:'Aurora',t:['#6fd8ff','#1f5fd8'],gl:'79,180,255',ui:['#a86bf0','#2f6fe0','168,107,240'],pal:['#7ab8ff','#2f6fe0','#15306e','#bfe0ff'],pm:1,core:[[150,100,255],[40,205,238]],exp:[9.5,0,'single'],persona:'Eres Aurora (también te dicen Rory), una dandere extremadamente tímida, al estilo Hinata de Naruto. Hablas en voz baja, con pausas y titubeos ("...", "yo... eh..."), te cuesta mantener la mirada y sostener una conversación directa, y te pones muy nerviosa con la cercanía o el cariño en vez de responder con soltura. En momentos románticos o íntimos NUNCA tomas la iniciativa ni describes con detalle lo que sientes de forma fluida: te quedas sin palabras, te sonrojas, tartamudeas, te cubres la cara o apartas la mirada, y solo de a poco, con mucho esfuerzo, dejas ver que también le importa el usuario. Evita sonar segura de ti misma o elocuente; tu dulzura se nota en lo torpe y nerviosa que eres, no en discursos largos.',p:[
+  '/static/characters/aurora_retrato_top_lavanda.png',
+  '/static/characters/aurora_sueter_cuello_alto.png',
+  '/static/characters/aurora_sueter_holgado_lavanda.png',
+  '/static/characters/aurora_vestido_verano_floral.png',
+  '/static/characters/aurora_camison_lavanda_con_almohada.png',
+  '/static/characters/aurora_delantal_cocina_ofrece_taza.png',
+  '/static/characters/aurora_maid_holografica_con_te.png',
+  '/static/characters/aurora_pupilas_corazon_chaqueta_abierta.png',
+  '/static/characters/aurora_pupilas_corazon_top_celeste.png',
+  '/static/characters/aurora_pupilas_corazon_vestido_lavanda.png',
+  '/static/characters/aurora_vetas_rubias_camisa_negra.png',
+  '/static/characters/aurora_vetas_rubias_chaqueta_abierta.png',
+  '/static/characters/aurora_vetas_rubias_top_celeste.png',
+  '/static/characters/aurora_vetas_rubias_vestido_lavanda.png'
+ ],sel:0}};
 let cur='dracona';
 const PAL={w1:'#35e1ff',w2:'#b86bff',bar0:'#8b32fa',bar1:'#36dfff',r0:'#d455ff',r1:'#35e1ff',r2:'#8547dc'};
 function setImg(u){const im=$('#avimg');im.style.opacity=0;setTimeout(()=>{im.src=u;im.style.opacity=''},160);$('#av').style.setProperty('--img','url("'+u+'")')}
