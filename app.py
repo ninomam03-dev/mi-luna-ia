@@ -245,7 +245,33 @@ const LBL={idle:'Lista',listening:'Escuchando',thinking:'Pensando',speaking:'Hab
 function setState(s){state=s;$('#st').dataset.s=s;$('#stt').textContent=LBL[s]}
 function setMode(m){mode=m;modeT=performance.now();if(m==='avatar'){const v=$('#av');v.classList.remove('rev');void v.offsetWidth;v.classList.add('rev')}app.dataset.mode=m;document.querySelectorAll('.tog button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===m))}
 $('#hr').oninput=e=>app.style.setProperty('--h',e.target.value/100);
-$('#pal').onclick=()=>{pal=pal?0:1};
+$('#pal').onclick=()=>{
+  pal=pal?0:1;
+  const c=CH[cur];
+  if(!c) return;
+  // Cuando pal=1 → color alternativo (dorado en Dracona, morado en Aurora)
+  // Cuando pal=0 → color principal (verde en Dracona, azul en Aurora)
+  const palColors={
+    dracona:{
+      0:{acc1:'#1a9850',acc2:'#0a3a22',accrgb:'61,220,132',gl:'61,220,132',t0:'#4ef2a0',t1:'#0e7a3e'},
+      1:{acc1:'#e0b84a',acc2:'#8a5c10',accrgb:'224,184,74',gl:'224,184,74',t0:'#f0d070',t1:'#c09030'}
+    },
+    rem:{
+      0:{acc1:'#2f6fe0',acc2:'#0a1f4a',accrgb:'79,180,255',gl:'79,180,255',t0:'#6fd8ff',t1:'#1f5fd8'},
+      1:{acc1:'#a86bf0',acc2:'#4a1a96',accrgb:'168,107,240',gl:'168,107,240',t0:'#c99aff',t1:'#7030c0'}
+    }
+  };
+  const pc=palColors[cur]?palColors[cur][pal]:null;
+  if(pc){
+    app.style.setProperty('--acc1',pc.acc1);
+    app.style.setProperty('--acc2',pc.acc2);
+    app.style.setProperty('--accrgb',pc.accrgb);
+    app.style.setProperty('--gl',pc.gl);
+    app.style.setProperty('--t1',pc.t0);
+    app.style.setProperty('--t2',pc.t1);
+    ACC=pc.accrgb;
+  }
+};
 document.querySelectorAll('.tog button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
 function add(who,txt){const d=document.createElement('div');d.className='m '+who;d.textContent=txt;$('#log').append(d);$('#log').hidden=false;$('#log').scrollTop=1e5}
 function pickFemaleVoice(){const vs=speechSynthesis.getVoices().filter(v=>v.lang.toLowerCase().startsWith('es'));if(!vs.length)return null;
@@ -332,6 +358,8 @@ function render(){const c=CH[cur];document.querySelectorAll('#poses button').for
 function reveal(){const v=$('#av');v.classList.remove('rev');void v.offsetWidth;v.classList.add('rev')}
 function addPoses(files){const c=CH[cur],first=!c.p.length;[...files].filter(f=>f.type.startsWith('image/')).forEach(f=>c.p.push(URL.createObjectURL(f)));render();if(first&&c.p.length){setMode('avatar')}}
 document.querySelectorAll('#chars button').forEach(b=>b.onclick=()=>{cur=b.dataset.c;document.querySelectorAll('#chars button').forEach(x=>x.setAttribute('aria-pressed',x===b));render();reveal()});
+// Atuendo aleatorio al arrancar: cada personaje empieza en una pose distinta
+Object.values(CH).forEach(c=>{if(c.p&&c.p.length>1)c.sel=Math.floor(Math.random()*c.p.length)});
 render();
 $('#file').onchange=e=>addPoses(e.target.files);
 $('#load').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('#file').click()}};
@@ -420,6 +448,14 @@ voices.forEach(([id,desc])=>{
 </body>
 </html>
 """
+
+
+@app.get("/static/characters/<path:filename>")
+def serve_character(filename):
+    from flask import send_from_directory
+    import pathlib
+    base = pathlib.Path(__file__).parent / "static" / "characters"
+    return send_from_directory(str(base), filename)
 
 
 @app.get("/voces")
@@ -618,7 +654,17 @@ def chat():
         "Habla naturalmente en español. Responde de forma clara y normalmente "
         "breve, sin repetir innecesariamente las respuestas. No inventes "
         "información que desconozcas. No menciones la fecha ni la hora salvo "
-        "que te las pregunten." + bloque_fecha
+        "que te las pregunten. "
+        "IMPORTANTE para los titubeos y sonidos: escribe los sonidos de duda "
+        "como palabras completas que un lector de voz pronuncie bien. "
+        "Usa 'eeh' en vez de 'e-e', 'mmm' en vez de 'mm' o 'm m', "
+        "'aah' en vez de 'a-a', 'uh' en vez de 'u h', "
+        "'este...' o 'eeh...' en vez de letras sueltas separadas por guiones. "
+        "Para el tartamudeo, repite la sílaba entera: 'yo-yo' o 'pe-pero' "
+        "en vez de 'y... yo' o 'p... pero'. "
+        "Nunca escribas una sola letra seguida de puntos suspensivos como titubeo "
+        "(mal: 'C... cómo estás', bien: 'eeh... ¿cómo estás?')."
+        + bloque_fecha
     )
 
     PROVIDERS = {
