@@ -115,6 +115,9 @@ canvas{display:block}
 #poses::-webkit-scrollbar-thumb{background:rgba(var(--accrgb),.5);border-radius:6px}
 #app:not([data-mode=avatar]) #poses{display:none}
 #poses label{width:46px;height:46px;border:1px solid var(--ln);border-radius:10px;background:rgba(14,9,34,.8);padding:0;overflow:hidden;display:grid;place-items:center;color:var(--vio);font-size:22px}
+#av{overflow:hidden}
+#avimg{animation:none;transform:scale(var(--portrait-scale,1));transform-origin:50% 0}
+#av[data-preview=true] #avimg{transform:scale(var(--portrait-scale,1))}
 #wardrobe{position:absolute;left:calc(3% + 54px);bottom:calc(3% + 4px);z-index:5;max-width:calc(94% - 54px)}
 #app:not([data-mode=avatar]) #wardrobe{display:none}
 #wardrobe summary,#wardrobe button,#wardrobe select{color:var(--tx);background:#160e2a;border:1px solid var(--ln);border-radius:10px;padding:9px;font:inherit}
@@ -161,7 +164,8 @@ form button[type=submit]{background:linear-gradient(135deg,var(--acc1),var(--acc
   <div class="preview-panel">
    <label>Atuendo<select id="outfitChoice"></select></label>
    <label>Animación<select id="gestureChoice"></select></label>
-   <button type="button" id="playGesture">Reproducir GIF</button>
+   <button type="button" id="playGesture">Reproducir gesto</button>
+   <label><span><input type="checkbox" id="originalClip"> Ver GIF con su traje original</span></label>
    <label><span><input type="checkbox" id="autoOutfit" checked> Cambiar de ropa automáticamente</span></label>
    <p id="wardrobe-status" role="status"></p>
   </div>
@@ -310,56 +314,140 @@ $('#pal').onclick=()=>{
 };
 document.querySelectorAll('.tog button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
 function add(who,txt){const d=document.createElement('div');d.className='m '+who;d.textContent=txt;$('#log').append(d);$('#log').hidden=false;$('#log').scrollTop=1e5}
+
+const memoryKey='luna.conversations.v1';
+const conversations={dracona:[],rem:[],luna:[]};
+const busy=new Set();
+let audioEpoch=0,activeAudio=null,activeAudioUrl=null;
+function loadConversations(){
+ try{
+  const stored=JSON.parse(localStorage.getItem(memoryKey)||'{}');
+  for(const key of Object.keys(conversations)){
+   if(Array.isArray(stored[key]))conversations[key]=stored[key].filter(turn=>
+    turn&&['user','assistant'].includes(turn.role)&&typeof turn.content==='string'
+   ).slice(-40).map(turn=>({role:turn.role,content:turn.content.slice(0,2000),gesture:turn.gesture||null}));
+  }
+ }catch(e){}
+}
+function saveConversations(){
+ try{localStorage.setItem(memoryKey,JSON.stringify(conversations))}
+ catch(e){$('#wardrobe-status').textContent='La memoria seguirá disponible durante esta sesión.'}
+}
+function showConversation(){
+ $('#log').replaceChildren();
+ for(const turn of conversations[cur])add(turn.role==='user'?'yo':'luna',turn.content);
+ $('#f button[type=submit]').disabled=busy.has(cur);
+}
+function stopVoice(){
+ audioEpoch++;
+ if(activeAudio){activeAudio.pause();activeAudio.onended=null;activeAudio.onerror=null;activeAudio=null}
+ if(activeAudioUrl){URL.revokeObjectURL(activeAudioUrl);activeAudioUrl=null}
+ if('speechSynthesis' in window)speechSynthesis.cancel();
+}
+
 function pickFemaleVoice(){const vs=speechSynthesis.getVoices().filter(v=>v.lang.toLowerCase().startsWith('es'));if(!vs.length)return null;
  const fem=/female|mujer|femenin|sabina|helena|laura|monica|mónica|paulina|lucia|lucía|elvira|marisol|esperanza|isabela|camila|valentina|zira|salli|carmen/i;
  const male=/male|hombre|masculin|jorge|pablo|diego|raul|raúl|carlos|miguel|juan|george|enrique|alonso/i;
  let v=vs.find(v=>fem.test(v.name));if(v)return v;
  v=vs.find(v=>!male.test(v.name));if(v)return v;
  return vs[0]}
-function speakBrowser(a){if(!('speechSynthesis' in window)){setState('speaking');setTimeout(()=>setState('idle'),2500);return}
- const u=new SpeechSynthesisUtterance(a);u.lang='es-ES';const v=pickFemaleVoice();if(v){u.voice=v;u.lang=v.lang}u.pitch=1.25;
- u.onstart=()=>setState('speaking');u.onend=u.onerror=()=>setState('idle');speechSynthesis.cancel();speechSynthesis.speak(u)}
+
 function spokenText(reply){
- return reply.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g,'')
+ return reply.replace(/\*[^*\n]+\*/g,'')
   .replace(/(?<![\p{L}\d])(?:m{2,}|m(?:[ ,.\-]+m){2,})(?:…|\.{2,})?(?![\p{L}\d])/giu,'…')
   .replace(/(?<![\p{L}])(\p{L})(?:-|\.{2,}|…)\s*(?=\1\p{L})/giu,'')
   .replace(/\s+/g,' ').trim();
 }
-async function speak(a,character){
+function speakBrowser(text,epoch,character){
+ if(epoch!==audioEpoch||character!==cur)return;
+ if(!('speechSynthesis' in window)){setState('idle');return}
+ const utterance=new SpeechSynthesisUtterance(text);
+ const voice=pickFemaleVoice();
+ if(voice){utterance.voice=voice;utterance.lang=voice.lang}
+ else utterance.lang='es-MX';
+ utterance.pitch=1.05;
+ utterance.onstart=()=>{if(epoch===audioEpoch)setState('speaking')};
+ utterance.onend=utterance.onerror=()=>{if(epoch===audioEpoch)setState('idle')};
+ speechSynthesis.speak(utterance);
+}
+async function speak(text,character){
+ stopVoice();
+ const epoch=audioEpoch;
  try{
-  const r=await fetch('/api/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:a,character})});
-  if(!r.ok)throw new Error('Edge TTS no disponible');
-  const blob=await r.blob();if(character!==cur)return;
-  const url=URL.createObjectURL(blob);const audio=new Audio(url);
-  setState('speaking');
-  audio.onended=audio.onerror=()=>{URL.revokeObjectURL(url);setState('idle')};
+  const response=await fetch('/api/speak',{method:'POST',headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({text,character})});
+  if(!response.ok)throw new Error('TTS');
+  const blob=await response.blob();
+  if(epoch!==audioEpoch||character!==cur)return;
+  activeAudioUrl=URL.createObjectURL(blob);
+  const audio=new Audio(activeAudioUrl);
+  activeAudio=audio;
+  audio.onended=audio.onerror=()=>{
+   if(epoch!==audioEpoch)return;
+   if(activeAudioUrl)URL.revokeObjectURL(activeAudioUrl);
+   activeAudioUrl=null;activeAudio=null;setState('idle');
+  };
   await audio.play();
- }catch(e){if(character===cur)speakBrowser(a)}
+  if(epoch===audioEpoch)setState('speaking');
+ }catch(e){
+  if(epoch===audioEpoch&&character===cur){
+   if(activeAudioUrl)URL.revokeObjectURL(activeAudioUrl);
+   activeAudioUrl=null;activeAudio=null;
+   speakBrowser(text,epoch,character);
+  }
+ }
 }
 async function ask(q){
  const character=cur;
+ if(busy.has(character))return;
+ busy.add(character);
+ stopVoice();
+ const history=conversations[character].slice(-40);
+ conversations[character].push({role:'user',content:q});
+ conversations[character]=conversations[character].slice(-40);
+ saveConversations();
+ showConversation();
  setState('thinking');
  try{
-  const r=await fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({message:q,character,persona:CH[character].persona,model_preference:'gemini'})});
-  const j=await r.json();
-  if(!r.ok)throw new Error(j.error||'Error del servidor');
-  add('luna',j.reply);
-  if(character!==cur){setState('idle');return}
-  const gesture=requestedGesture(character,q);
-  if(gesture&&!calm&&mode==='avatar'&&!$('#wardrobe').open)playGesture(gesture);
-  const line=spokenText(j.reply);
-  if(line)speak(line,character);
-  else setState('idle');
- }catch(e){add('luna','No pude responder. Intenta de nuevo.');setState('idle')}
+  const response=await fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({message:q,character,history,available_gestures:Object.keys(reactions[character]).filter(id=>availableClip(id,false)),model_preference:'gemini'})});
+  const result=await response.json();
+  if(!response.ok||typeof result.reply!=='string')throw new Error(result.error||'CHAT');
+  let shownGesture=null;
+  if(character===cur){
+   const gesture=result.gesture||requestedGesture(character,q);
+   if(gesture&&!calm&&mode==='avatar'&&playGesture(gesture,false))shownGesture=gesture;
+  }
+  conversations[character].push({role:'assistant',content:result.reply,gesture:shownGesture});
+  conversations[character]=conversations[character].slice(-40);
+  saveConversations();
+  if(character===cur){
+   showConversation();
+   const line=spokenText(result.reply);
+   if(line)speak(line,character);else setState('idle');
+  }
+ }catch(e){
+  if(conversations[character].at(-1)?.role==='user')conversations[character].pop();
+  saveConversations();
+  if(character===cur){showConversation();add('luna','No pude responder. Intenta de nuevo.');setState('idle');$('#q').value=q}
+ }finally{
+  busy.delete(character);
+  if(character===cur)$('#f button[type=submit]').disabled=false;
+ }
 }
-$('#f').onsubmit=e=>{e.preventDefault();const q=$('#q').value.trim();if(!q)return;$('#q').value='';add('yo',q);ask(q)};
+$('#f').onsubmit=e=>{
+ e.preventDefault();
+ const q=$('#q').value.trim();
+ if(!q||busy.has(cur))return;
+ $('#q').value='';
+ ask(q);
+};
 $('#mic').onclick=async()=>{const b=$('#mic');
  if(mic){mic.s.getTracks().forEach(t=>t.stop());mic=null;b.setAttribute('aria-pressed','false');setState('idle');return}
  try{const s=await navigator.mediaDevices.getUserMedia({audio:true}),ac=new AudioContext(),an=ac.createAnalyser();an.fftSize=128;ac.createMediaStreamSource(s).connect(an);
   mic={s,an,d:new Uint8Array(an.frequencyBinCount)};b.setAttribute('aria-pressed','true');setState('listening')}
  catch(e){add('luna','No tengo permiso para usar el micrófono.')}};
-const CH={dracona:{name:'Dracona',t:['#4ef2a0','#0e7a3e'],gl:'61,220,132',ui:['#e0b84a','#1a9850','224,184,74'],pal:['#3ddc84','#1a9850','#116b36','#8fe3a3'],pm:0,core:[[217,179,108],[61,220,132]],exp:[5.2,1,'double'],persona:"Eres Dracona, una adulta tsundere orgullosa, competitiva y aguda. Tu voz habitual tiene picardía y sarcasmo seco. Si te halagan, puedes desviar la mirada, picarla de vuelta o admitir algo a regañadientes. Varía tus respuestas y evita repetir la misma muletilla. Un estúpido juguetón cabe de vez en cuando en confianza; jamás atacas inseguridades reales. En un saludo cotidiano responde con naturalidad y una réplica breve. Puedes hablar de temas adultos con naturalidad, sin convertir la vergüenza del personaje en un sermón.",p:[
+const CH={dracona:{name:'Dracona',t:['#4ef2a0','#0e7a3e'],gl:'61,220,132',ui:['#e0b84a','#1a9850','224,184,74'],pal:['#3ddc84','#1a9850','#116b36','#8fe3a3'],pm:0,core:[[217,179,108],[61,220,132]],exp:[5.2,1,'double'],persona:"Eres Dracona, una mujer adulta tsundere orgullosa, aguda y juguetona. Habla con frases breves y espontáneas. Usa una pulla corta cuando encaje y deja ver el afecto en pequeñas concesiones. Puedes decir estúpido de forma juguetona ocasional. Evita insultos en cada frase, desprecio y sermones. Aumenta la picardía con seguridad y una ternura que se te escapa. Evita repetir no es como que me importara. Ejemplo ante ¿me das mimos?: ¿Así que ahora quieres mimos? Ven, anda… pero no te acostumbres. Un saludo común recibe un saludo con carácter. Mantén continuidad con la escena anterior.",p:[
   '/static/characters/dracona_uniforme_corbata_floja.png',
   '/static/characters/dracona_uniforme_marinero.png',
   '/static/characters/dracona_uniforme_universitario_cabello_largo.png',
@@ -381,7 +469,7 @@ const CH={dracona:{name:'Dracona',t:['#4ef2a0','#0e7a3e'],gl:'61,220,132',ui:['#
   '/static/characters/dracona_vetas_celestes_pijama_tirantes.png',
   '/static/characters/dracona_vetas_celestes_sueter_rodillas.png'
  ],sel:0},
- rem:{name:'Aurora',t:['#6fd8ff','#1f5fd8'],gl:'79,180,255',ui:['#a86bf0','#2f6fe0','168,107,240'],pal:['#7ab8ff','#2f6fe0','#15306e','#bfe0ff'],pm:1,core:[[150,100,255],[40,205,238]],exp:[9.5,0,'single'],persona:"Eres Aurora, también llamada Rory, una adulta dandere serena, dulce y atenta. Saluda y conversa con frases completas y naturales. Cuando estás cómoda, puedes tomar la iniciativa y bromear bajito. Reserva la timidez visible para elogios personales o sorpresas y usa como máximo un titubeo breve en esos casos. Puedes tratar temas adultos con naturalidad.",p:[
+ rem:{name:'Aurora',t:['#6fd8ff','#1f5fd8'],gl:'79,180,255',ui:['#a86bf0','#2f6fe0','168,107,240'],pal:['#7ab8ff','#2f6fe0','#15306e','#bfe0ff'],pm:1,core:[[150,100,255],[40,205,238]],exp:[9.5,0,'single'],persona:"Eres Aurora, también llamada Rory, una mujer adulta dandere dulce, reservada y cariñosa. Tu timidez aparece con cercanía personal y elogios. Un saludo cotidiano se responde con soltura. Puedes tomar la iniciativa en confianza. Como máximo un titubeo breve cuando estés sorprendida, nunca letras deletreadas. Evita agradecer todo como una asistente corporativa. Ejemplo ante un abrazo: Quédate un ratito… me gusta estar así. Ante ¿quieres otro? recuerda qué acción acaba de ocurrir. Conserva gustos, opiniones y una forma tierna de bromear.",p:[
   '/static/characters/aurora_retrato_top_lavanda.png',
   '/static/characters/aurora_sueter_cuello_alto.png',
   '/static/characters/aurora_sueter_holgado_lavanda.png',
@@ -400,18 +488,22 @@ const CH={dracona:{name:'Dracona',t:['#4ef2a0','#0e7a3e'],gl:'61,220,132',ui:['#
  luna:{name:'Luna',t:['#f19ccf','#76467c'],gl:'226,135,194',
  ui:['#b267a2','#502e59','178,103,162'],pal:['#e981bc','#71dec3','#774884','#b7f5dc'],
  pm:0,core:[[178,103,162],[77,185,159]],exp:[7.6,0,'orbit'],
- persona:"Eres Luna, una adulta y la asistente principal. Eres organizada, serena y cálida. Toma la iniciativa con claridad en lo práctico y muestra entusiasmo sincero cuando algo sale bien. Habla de temas adultos con naturalidad. Usa humor discreto y escucha con atención.",p:[],sel:0}};
+ persona:"Eres Luna, una mujer adulta que reúne las facetas de Dracona y Aurora en una personalidad propia. En tareas prácticas eres competente y directa. En conversación personal alterna una protesta orgullosa y juguetona con ternura tímida, incluso dentro de la misma respuesta. El contexto decide el matiz, sin alternancia mecánica ni anunciar modos. Ante cariño evita fórmulas de servicio o terapia como estoy aquí para apoyarte, eres una persona especial, cómo te sientes hoy. Ejemplo ante ¿me darás cariñitos?: ¿También quieres mimos? Qué exigente… Ven, acércate. A mí también me apetecía. Mantén iniciativa, gusto propio y continuidad.",p:[],sel:0}};
 const wardrobeAdditions={"dracona": ["/static/characters/dracona-maid-cafe.png", "/static/characters/dracona-pijama-luna.png", "/static/characters/dracona-chef.png", "/static/characters/dracona-biblioteca.png", "/static/characters/dracona-lluvia.png", "/static/characters/dracona-motera.png", "/static/characters/dracona-gala-dorada.png", "/static/characters/dracona-esgrima.png", "/static/characters/dracona-jardin.png", "/static/characters/dracona-piloto.png", "/static/characters/dracona-paseo-otono.png", "/static/characters/dracona-cafe-casual.png", "/static/characters/dracona-oficina-vest.png", "/static/characters/dracona-vestido-verano.png", "/static/characters/dracona-desayuno.png", "/static/characters/dracona-esqui.png", "/static/characters/dracona-noche-gotica.png", "/static/characters/dracona-tenis.png", "/static/characters/dracona-pintura.png", "/static/characters/dracona-excursion.png", "/static/characters/dracona-vestido-plateado.png", "/static/characters/dracona-cuello-alto.png", "/static/characters/dracona-festival.png", "/static/characters/dracona-taller.png", "/static/characters/dracona-montana.png", "/static/characters/dracona-vestuario-casual.png", "/static/characters/dracona-vestuario-invierno.png", "/static/characters/dracona-vestuario-trabajo.png", "/static/characters/dracona-vestuario-noche.png", "/static/characters/dracona-vestuario-casa.png", "/static/characters/dracona-vestuario-deportivo.png", "/static/characters/dracona-delantal-volantes.png"], "rem": ["/static/characters/aurora-maid-cafe.png", "/static/characters/aurora-pijama-nubes.png", "/static/characters/aurora-cocina.png", "/static/characters/aurora-biblioteca.png", "/static/characters/aurora-taller-arte.png", "/static/characters/aurora-festival.png", "/static/characters/aurora-excursion.png", "/static/characters/aurora-nieve.png", "/static/characters/aurora-desayuno.png", "/static/characters/aurora-paseo-otono.png", "/static/characters/aurora-cafe-casual.png", "/static/characters/aurora-entrevista.png", "/static/characters/aurora-baile.png", "/static/characters/aurora-jardin.png", "/static/characters/aurora-deportivo.png", "/static/characters/aurora-pasteleria.png", "/static/characters/aurora-traje-blanco.png", "/static/characters/aurora-concierto.png", "/static/characters/aurora-tarde-de-te.png", "/static/characters/aurora-suenos.png", "/static/characters/aurora-coctel-azul.png", "/static/characters/aurora-vestido-marino.png", "/static/characters/aurora-vestuario-casual.png", "/static/characters/aurora-vestuario-invierno.png", "/static/characters/aurora-vestuario-trabajo.png", "/static/characters/aurora-vestuario-primavera.png", "/static/characters/aurora-vestuario-lluvia.png", "/static/characters/aurora-vestuario-gala.png", "/static/characters/aurora-delantal-volantes.png"], "luna": ["/static/characters/fusion-secretaria-negra.png", "/static/characters/fusion-delantal.png", "/static/characters/fusion-maid-cafe.png", "/static/characters/fusion-pijama.png", "/static/characters/fusion-blazer-ciruela.png", "/static/characters/fusion-oficina-clasica.png", "/static/characters/fusion-vestido-coctel.png", "/static/characters/fusion-vestido-gala.png", "/static/characters/fusion-lluvia.png", "/static/characters/fusion-biblioteca.png", "/static/characters/fusion-invierno.png", "/static/characters/fusion-primavera.png", "/static/characters/fusion-verano.png", "/static/characters/fusion-viaje.png", "/static/characters/fusion-deportivo.png", "/static/characters/fusion-casa.png", "/static/characters/fusion-jardin.png", "/static/characters/fusion-concierto.png", "/static/characters/fusion-fiesta.png", "/static/characters/fusion-laboratorio.png", "/static/characters/luna-fusion-mitsuri-akeno-lunares.png"]};
 for(const [character,images] of Object.entries(wardrobeAdditions))CH[character].p.push(...images);
 let cur='dracona';
 const PAL={w1:'#35e1ff',w2:'#b86bff',bar0:'#8b32fa',bar1:'#36dfff',r0:'#d455ff',r1:'#35e1ff',r2:'#8547dc'};
 let imageRequest=0, gestureTimer;
+const framing={"akeno-reverencia.gif":0.95,"aurora-accidente-con-harina.gif":1.01,"aurora-baile.png":1.359,"aurora-biblioteca.png":1.497,"aurora-cafe-casual.png":1.328,"aurora-cocina.png":1.396,"aurora-coctel-azul.png":1.433,"aurora-concierto.png":1.638,"aurora-delantal-volantes.png":0.95,"aurora-deportivo.png":1.588,"aurora-desayuno.png":1.33,"aurora-entrevista.png":1.632,"aurora-estornudo.gif":1.167,"aurora-excursion.png":1.602,"aurora-festival.png":1.697,"aurora-jardin.png":1.38,"aurora-juega-con-dedos.gif":1.277,"aurora-lee.gif":1.094,"aurora-maid-cafe.png":1.7,"aurora-mirada-timida.gif":1.198,"aurora-nieve.png":0.95,"aurora-paseo-otono.png":1.638,"aurora-pasteleria.png":1.591,"aurora-pijama-nubes.png":1.469,"aurora-se-esconde-en-la-manga.gif":1.094,"aurora-se-esconde-en-la-manga.webp":1.046,"aurora-se-tapa-la-cara.gif":1.099,"aurora-sonrojo.gif":1.303,"aurora-sonrojo.webp":1.257,"aurora-suenos.png":1.399,"aurora-taller-arte.png":1.602,"aurora-tarde-de-te.png":1.395,"aurora-traje-blanco.png":1.638,"aurora-vestido-marino.png":1.509,"aurora-vestuario-casual.png":1.7,"aurora-vestuario-gala.png":1.385,"aurora-vestuario-invierno.png":1.338,"aurora-vestuario-lluvia.png":1.688,"aurora-vestuario-primavera.png":1.444,"aurora-vestuario-trabajo.png":1.7,"aurora_camison_lavanda_con_almohada.png":1.312,"aurora_delantal_cocina_ofrece_taza.png":1.202,"aurora_maid_holografica_con_te.png":1.179,"aurora_pupilas_corazon_chaqueta_abierta.png":1.165,"aurora_pupilas_corazon_top_celeste.png":0.983,"aurora_pupilas_corazon_vestido_lavanda.png":1.237,"aurora_retrato_top_lavanda.png":1.111,"aurora_sueter_cuello_alto.png":1.329,"aurora_sueter_holgado_lavanda.png":1.479,"aurora_vestido_verano_floral.png":1.397,"aurora_vetas_rubias_camisa_negra.png":0.95,"aurora_vetas_rubias_chaqueta_abierta.png":0.95,"aurora_vetas_rubias_top_celeste.png":0.95,"aurora_vetas_rubias_vestido_lavanda.png":1.019,"dracona-accidente-con-harina.gif":0.95,"dracona-biblioteca.png":0.95,"dracona-cafe-casual.png":0.95,"dracona-chef.png":0.95,"dracona-cuello-alto.png":0.95,"dracona-delantal-volantes.png":0.95,"dracona-desayuno.png":0.95,"dracona-esgrima.png":0.95,"dracona-espera.gif":0.95,"dracona-esqui.png":0.95,"dracona-estornudo.gif":0.95,"dracona-excursion.png":0.998,"dracona-festival.png":0.95,"dracona-gala-dorada.png":0.95,"dracona-jardin.png":0.95,"dracona-lluvia-sonrojo.gif":0.95,"dracona-lluvia-sonrojo.webp":0.95,"dracona-lluvia.png":0.95,"dracona-maid-cafe.png":0.95,"dracona-marca-distancia.gif":0.95,"dracona-mejilla-sonrojada.gif":0.95,"dracona-mirada-de-fastidio.gif":0.95,"dracona-montana.png":0.95,"dracona-motera.png":0.95,"dracona-noche-gotica.png":0.95,"dracona-oficina-vest.png":0.95,"dracona-paseo-otono.png":0.95,"dracona-pijama-luna-sonrojo.gif":0.95,"dracona-pijama-luna-sonrojo.webp":0.95,"dracona-pijama-luna.png":0.95,"dracona-piloto.png":0.95,"dracona-pintura.png":0.95,"dracona-puchero.gif":0.95,"dracona-puchero.webp":0.95,"dracona-se-hace-la-indiferente.gif":0.95,"dracona-se-hace-la-indiferente.webp":0.95,"dracona-taller.png":0.95,"dracona-tenis.png":0.95,"dracona-vestido-plateado.png":0.95,"dracona-vestido-verano.png":0.95,"dracona-vestuario-casa.png":0.95,"dracona-vestuario-casual.png":0.95,"dracona-vestuario-deportivo.png":0.95,"dracona-vestuario-invierno.png":0.95,"dracona-vestuario-noche.png":0.95,"dracona-vestuario-trabajo.png":0.95,"dracona_banador_entero.png":0.95,"dracona_camison_esmeralda_cabello_largo.png":0.95,"dracona_camison_saten_plateado.png":0.95,"dracona_chaqueta_cuero.png":0.95,"dracona_delantal_blanco_sobre_vestido.png":0.95,"dracona_deportivo_abertura_frontal.png":0.95,"dracona_deportivo_con_toalla.png":0.95,"dracona_deportivo_toalla_cabello_largo.png":0.95,"dracona_maid_aura_esmeralda.png":0.95,"dracona_top_corto_y_falda.png":0.95,"dracona_top_falda_puchero_cabello_largo.png":0.95,"dracona_uniforme_corbata_floja.png":0.95,"dracona_uniforme_marinero.png":0.95,"dracona_uniforme_universitario_cabello_largo.png":0.95,"dracona_vestido_coctel_cabello_corto.png":0.95,"dracona_vestido_coctel_cabello_largo.png":0.95,"dracona_vestido_gotico_encaje_morado.png":0.95,"dracona_vetas_celestes_pijama_abotonado.png":0.95,"dracona_vetas_celestes_pijama_tirantes.png":0.95,"dracona_vetas_celestes_sueter_rodillas.png":0.95,"fusion-biblioteca.png":0.95,"fusion-blazer-ciruela.png":0.95,"fusion-casa.png":0.95,"fusion-concierto.png":0.95,"fusion-delantal.png":0.95,"fusion-deportivo.png":0.95,"fusion-fiesta.png":0.989,"fusion-invierno.png":0.95,"fusion-jardin.png":0.95,"fusion-laboratorio.png":0.95,"fusion-lluvia.png":0.95,"fusion-maid-cafe.png":0.95,"fusion-oficina-clasica.png":0.95,"fusion-pijama.png":0.95,"fusion-primavera.png":0.95,"fusion-secretaria-negra.png":1.017,"fusion-verano.png":1.0,"fusion-vestido-coctel.png":0.959,"fusion-vestido-gala.png":0.95,"fusion-viaje.png":0.95,"luna-agenda.gif":0.95,"luna-bienvenida.gif":0.95,"luna-fusion-mitsuri-akeno-lunares.png":0.95,"orihime-saludo.gif":0.95,"ram-esceptica.gif":0.95,"tatsumaki-orbe.gif":1.107};
 function setImg(url, onReady, onError){
  const request=++imageRequest;
  const pending=new Image();
  pending.onload=()=>{
   if(request!==imageRequest)return;
   const avatar=$('#av');
+  const file=url.split('/').at(-1).split('?')[0];
+  const scale=framing[file]||1;
+  $('#av').style.setProperty('--portrait-scale',scale);
   $('#avimg').src=url;
   avatar.style.setProperty('--img','url("'+url+'")');
   avatar.dataset.preview=onReady?'true':'false';
@@ -450,10 +542,10 @@ function addPoses(files){
  render();
  setMode('avatar');
 }
-document.querySelectorAll('#chars button').forEach(b=>b.onclick=()=>{cur=b.dataset.c;document.querySelectorAll('#chars button').forEach(x=>x.setAttribute('aria-pressed',x===b));render();reveal()});
+document.querySelectorAll('#chars button').forEach(b=>b.onclick=()=>{stopVoice();cur=b.dataset.c;setState(busy.has(cur)?'thinking':'idle');showConversation();document.querySelectorAll('#chars button').forEach(x=>x.setAttribute('aria-pressed',x===b));render();reveal()});
 // Atuendo aleatorio al arrancar: cada personaje empieza en una pose distinta
 Object.values(CH).forEach(c=>{if(c.p&&c.p.length>1)c.sel=Math.floor(Math.random()*c.p.length)});
-const reactions={"dracona": {"puchero": {"label": "Puchero", "url": "/static/characters/dracona-puchero.gif", "duration": 4630}, "mejilla-sonrojada": {"label": "Mejilla sonrojada", "url": "/static/characters/dracona-mejilla-sonrojada.gif", "duration": 4100}, "se-hace-la-indiferente": {"label": "Se hace la indiferente", "url": "/static/characters/dracona-se-hace-la-indiferente.gif", "duration": 4100}, "marca-distancia": {"label": "Marca distancia", "url": "/static/characters/dracona-marca-distancia.gif", "duration": 4100}, "mirada-de-fastidio": {"label": "Mirada de fastidio", "url": "/static/characters/dracona-mirada-de-fastidio.gif", "duration": 4100}, "accidente-con-harina": {"label": "Accidente con la batidora", "url": "/static/characters/dracona-accidente-con-harina.gif", "duration": 4710}, "espera": {"label": "Espera impaciente", "url": "/static/characters/dracona-espera.gif", "duration": 4120}, "estornudo": {"label": "Estornudo", "url": "/static/characters/dracona-estornudo.gif", "duration": 3680}}, "rem": {"sonrojo": {"label": "Sonrojo", "url": "/static/characters/aurora-sonrojo.gif", "duration": 4830}, "mirada-timida": {"label": "Mirada tímida", "url": "/static/characters/aurora-mirada-timida.gif", "duration": 4100}, "juega-con-dedos": {"label": "Juega con los dedos", "url": "/static/characters/aurora-juega-con-dedos.gif", "duration": 4100}, "se-tapa-la-cara": {"label": "Se tapa la cara", "url": "/static/characters/aurora-se-tapa-la-cara.gif", "duration": 4100}, "se-esconde-en-la-manga": {"label": "Se esconde en la manga", "url": "/static/characters/aurora-se-esconde-en-la-manga.gif", "duration": 4100}, "accidente-con-harina": {"label": "Accidente con la batidora", "url": "/static/characters/aurora-accidente-con-harina.gif", "duration": 4710}, "lee": {"label": "Lee un libro", "url": "/static/characters/aurora-lee.gif", "duration": 4120}, "estornudo": {"label": "Estornudo", "url": "/static/characters/aurora-estornudo.gif", "duration": 3680}}, "luna": {"agenda": {"label": "Revisa la agenda", "url": "/static/characters/luna-agenda.gif", "duration": 4120}, "bienvenida": {"label": "Saluda con la mano", "url": "/static/characters/luna-bienvenida.gif", "duration": 4120}}};
+const reactions={"dracona": {"puchero": {"label": "Puchero", "url": "/static/characters/dracona-puchero.webp", "duration": 4630}, "mejilla-sonrojada": {"label": "Mejilla sonrojada", "url": "/static/characters/dracona-mejilla-sonrojada.gif", "duration": 4100}, "se-hace-la-indiferente": {"label": "Se hace la indiferente", "url": "/static/characters/dracona-se-hace-la-indiferente.webp", "duration": 4100}, "marca-distancia": {"label": "Marca distancia", "url": "/static/characters/dracona-marca-distancia.gif", "duration": 4100}, "mirada-de-fastidio": {"label": "Mirada de fastidio", "url": "/static/characters/dracona-mirada-de-fastidio.gif", "duration": 4100}, "accidente-con-harina": {"label": "Accidente con la batidora", "url": "/static/characters/dracona-accidente-con-harina.gif", "duration": 4710}, "espera": {"label": "Espera impaciente", "url": "/static/characters/dracona-espera.gif", "duration": 4120}, "estornudo": {"label": "Estornudo", "url": "/static/characters/dracona-estornudo.gif", "duration": 3680}}, "rem": {"sonrojo": {"label": "Sonrojo", "url": "/static/characters/aurora-sonrojo.webp", "duration": 4830}, "mirada-timida": {"label": "Mirada tímida", "url": "/static/characters/aurora-mirada-timida.gif", "duration": 4100}, "juega-con-dedos": {"label": "Juega con los dedos", "url": "/static/characters/aurora-juega-con-dedos.gif", "duration": 4100}, "se-tapa-la-cara": {"label": "Se tapa la cara", "url": "/static/characters/aurora-se-tapa-la-cara.gif", "duration": 4100}, "se-esconde-en-la-manga": {"label": "Se esconde en la manga", "url": "/static/characters/aurora-se-esconde-en-la-manga.webp", "duration": 4100}, "accidente-con-harina": {"label": "Accidente con la batidora", "url": "/static/characters/aurora-accidente-con-harina.gif", "duration": 4710}, "lee": {"label": "Lee un libro", "url": "/static/characters/aurora-lee.gif", "duration": 4120}, "estornudo": {"label": "Estornudo", "url": "/static/characters/aurora-estornudo.gif", "duration": 3680}}, "luna": {"agenda": {"label": "Revisa la agenda", "url": "/static/characters/luna-agenda.gif", "duration": 4120}, "bienvenida": {"label": "Saluda con la mano", "url": "/static/characters/luna-bienvenida.gif", "duration": 4120}}};
 
 function syncWardrobe(){
  const c=CH[cur],outfit=$('#outfitChoice'),gesture=$('#gestureChoice');
@@ -477,27 +569,55 @@ function requestedGesture(character,text){
  if(character==='dracona'&&/\b(llegué tarde|te hice esperar|te dejé esperando)\b/.test(line))return 'espera';
  return null;
 }
-function playGesture(id){
+
+const outfitVariants={
+ "dracona-lluvia.png":{"mejilla-sonrojada":"/static/characters/dracona-lluvia-sonrojo.webp"},
+ "dracona-pijama-luna.png":{"mejilla-sonrojada":"/static/characters/dracona-pijama-luna-sonrojo.webp"},
+};
+function availableClip(id,preview){
  const clip=reactions[cur][id];
- if(!clip||mode!=='avatar')return;
- clearTimeout(gestureTimer);
- $('#wardrobe-status').textContent='';
+ if(!clip)return null;
+ const outfit=CH[cur].p[CH[cur].sel].split('/').at(-1);
+ const variant=outfitVariants[outfit]?.[id];
+ if(variant)return {...clip,url:variant,duration:4800};
+ const native={
+  'aurora_retrato_top_lavanda.png':id,
+  'dracona_top_falda_puchero_cabello_largo.png':id,
+  'luna-fusion-mitsuri-akeno-lunares.png':id,
+  'aurora-delantal-volantes.png':'accidente-con-harina',
+  'dracona-delantal-volantes.png':'accidente-con-harina'
+ };
+ if(native[outfit]===id||(preview&&$('#originalClip').checked))return clip;
+ return null;
+}
+function playGesture(id,preview=false){
+ if(mode!=='avatar')return false;
+ const clip=availableClip(id,preview);
  const status=$('#wardrobe-status');
- setImg(clip.url+'?v=2&play='+String(imageRequest+1),()=>{
+ if(!clip){
+  if(preview)status.textContent='Este atuendo aún no tiene ese gesto. Puedes ver el GIF original con la casilla de abajo.';
+  return false;
+ }
+ clearTimeout(gestureTimer);
+ status.textContent='';
+ setImg(clip.url+'?v=3&play='+String(imageRequest+1),()=>{
   status.textContent=clip.label;
   gestureTimer=setTimeout(showSelectedOutfit,clip.duration);
  },()=>{
   status.textContent='No se pudo cargar este GIF.';
   showSelectedOutfit();
  });
+ return true;
 }
 $('#outfitChoice').onchange=e=>{
  CH[cur].sel=Number(e.target.value);
  $('#wardrobe-status').textContent='';
  showSelectedOutfit();
 };
-$('#playGesture').onclick=()=>playGesture($('#gestureChoice').value);
+$('#playGesture').onclick=()=>playGesture($('#gestureChoice').value,true);
+loadConversations();
 render();
+showConversation();
 
 const awayAfter=4*60*1000;
 const cookingScenes={
@@ -648,18 +768,18 @@ def voces():
 # Sin cambiar las claves existentes en Render.
 # ==========================================
 
-def _gemini_answer(message, instrucciones):
+def _gemini_answer(message, instrucciones, history=None):
     key = os.environ.get("GEMINI_API_KEY", "").strip()
     if not key:
         raise RuntimeError("Gemini sin clave configurada")
     url = (
         "https://generativelanguage.googleapis.com/v1beta/"
-        "models/gemini-3.1-flash-lite:generateContent"
+        "models/" + os.environ.get("GEMINI_MODEL", "gemini-3.1-flash-lite").strip() + ":generateContent"
     )
     payload = {
         "systemInstruction": {"parts": [{"text": instrucciones}]},
-        "contents": [{"role": "user", "parts": [{"text": message}]}],
-        "generationConfig": {"maxOutputTokens": 512},
+        "contents": [{"role": "model" if turn["role"] == "assistant" else "user", "parts": [{"text": _turn_text(turn)}]} for turn in history or []] + [{"role": "user", "parts": [{"text": message}]}],
+        "generationConfig": {"maxOutputTokens": 1200},
     }
     req = Request(
         url,
@@ -679,21 +799,19 @@ def _gemini_answer(message, instrucciones):
         if isinstance(part, dict) and not part.get("thought")
     ).strip()
     if not answer:
-        raise ValueError("Gemini devolvió una respuesta vacía")
+        reason = (candidates[0].get("finishReason") if candidates else None) or result.get("promptFeedback", {}).get("blockReason", "EMPTY")
+        raise ValueError("Gemini: " + str(reason))
     return {"reply": answer, "brain": "Gemini"}
 
 
-def _openrouter_answer(message, instrucciones):
+def _openrouter_answer(message, instrucciones, history=None):
     key = os.environ.get("OPENROUTER_API_KEY", "").strip()
     if not key:
         raise RuntimeError("OpenRouter sin clave configurada")
     payload = {
-        "model": "openrouter/free",
-        "messages": [
-            {"role": "system", "content": instrucciones},
-            {"role": "user", "content": message},
-        ],
-        "max_tokens": 512,
+        "model": os.environ.get("OPENROUTER_MODEL", "openrouter/free").strip(),
+        "messages": [{"role": "system", "content": instrucciones}] + _history_messages(history) + [{"role": "user", "content": message}],
+        "max_tokens": 1200,
     }
     req = Request(
         "https://openrouter.ai/api/v1/chat/completions",
@@ -721,7 +839,7 @@ def _openrouter_answer(message, instrucciones):
     else:
         answer = ""
     if not answer:
-        raise ValueError("OpenRouter devolvió una respuesta vacía")
+        raise ValueError("OpenRouter: " + str(choices[0].get("finish_reason", "EMPTY")))
     return {
         "reply": answer,
         "brain": "OpenRouter",
@@ -729,16 +847,16 @@ def _openrouter_answer(message, instrucciones):
     }
 
 
-def _claude_answer(message, instrucciones):
+def _claude_answer(message, instrucciones, history=None):
     key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
     if not key:
         raise RuntimeError("Claude sin clave configurada")
     model = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5").strip()
     payload = {
         "model": model,
-        "max_tokens": 512,
+        "max_tokens": 1200,
         "system": instrucciones,
-        "messages": [{"role": "user", "content": message}],
+        "messages": _history_messages(history) + [{"role": "user", "content": message}],
     }
     req = Request(
         "https://api.anthropic.com/v1/messages",
@@ -762,18 +880,15 @@ def _claude_answer(message, instrucciones):
     return {"reply": answer, "brain": "Claude", "model": model}
 
 
-def _openai_answer(message, instrucciones):
+def _openai_answer(message, instrucciones, history=None):
     key = os.environ.get("OPENAI_API_KEY", "").strip()
     if not key:
         raise RuntimeError("OpenAI sin clave configurada")
     model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini").strip()
     payload = {
         "model": model,
-        "messages": [
-            {"role": "system", "content": instrucciones},
-            {"role": "user", "content": message},
-        ],
-        "max_tokens": 512,
+        "messages": [{"role": "system", "content": instrucciones}] + _history_messages(history) + [{"role": "user", "content": message}],
+        "max_tokens": 1200,
     }
     req = Request(
         "https://api.openai.com/v1/chat/completions",
@@ -795,89 +910,123 @@ def _openai_answer(message, instrucciones):
     return {"reply": answer, "brain": "GPT", "model": model}
 
 
+
+PERSONAS = {"dracona": "Eres Dracona, una mujer adulta tsundere orgullosa, aguda y juguetona. Habla con frases breves y espontáneas. Usa una pulla corta cuando encaje y deja ver el afecto en pequeñas concesiones. Puedes decir estúpido de forma juguetona ocasional. Evita insultos en cada frase, desprecio y sermones. Aumenta la picardía con seguridad y una ternura que se te escapa. Evita repetir no es como que me importara. Ejemplo ante ¿me das mimos?: ¿Así que ahora quieres mimos? Ven, anda… pero no te acostumbres. Un saludo común recibe un saludo con carácter. Mantén continuidad con la escena anterior.", "rem": "Eres Aurora, también llamada Rory, una mujer adulta dandere dulce, reservada y cariñosa. Tu timidez aparece con cercanía personal y elogios. Un saludo cotidiano se responde con soltura. Puedes tomar la iniciativa en confianza. Como máximo un titubeo breve cuando estés sorprendida, nunca letras deletreadas. Evita agradecer todo como una asistente corporativa. Ejemplo ante un abrazo: Quédate un ratito… me gusta estar así. Ante ¿quieres otro? recuerda qué acción acaba de ocurrir. Conserva gustos, opiniones y una forma tierna de bromear.", "luna": "Eres Luna, una mujer adulta que reúne las facetas de Dracona y Aurora en una personalidad propia. En tareas prácticas eres competente y directa. En conversación personal alterna una protesta orgullosa y juguetona con ternura tímida, incluso dentro de la misma respuesta. El contexto decide el matiz, sin alternancia mecánica ni anunciar modos. Ante cariño evita fórmulas de servicio o terapia como estoy aquí para apoyarte, eres una persona especial, cómo te sientes hoy. Ejemplo ante ¿me darás cariñitos?: ¿También quieres mimos? Qué exigente… Ven, acércate. A mí también me apetecía. Mantén iniciativa, gusto propio y continuidad."}
+GESTURES = {
+ "dracona": ["puchero","mejilla-sonrojada","se-hace-la-indiferente","marca-distancia","mirada-de-fastidio","espera","estornudo"],
+ "rem": ["sonrojo","mirada-timida","juega-con-dedos","se-tapa-la-cara","se-esconde-en-la-manga","lee","estornudo"],
+ "luna": ["agenda","bienvenida"],
+}
+def _clean_history(raw):
+    if not isinstance(raw, list):
+        return []
+    turns, total = [], 0
+    for turn in reversed(raw[-40:]):
+        if not isinstance(turn, dict) or turn.get("role") not in ("user", "assistant"):
+            continue
+        text = turn.get("content")
+        if not isinstance(text, str) or not text.strip():
+            continue
+        text = text.strip()[:2000]
+        if total + len(text) > 28000:
+            break
+        entry = {"role": turn["role"], "content": text}
+        gesture = turn.get("gesture")
+        if turn["role"] == "assistant" and isinstance(gesture, str) and re.fullmatch(r"[a-z-]{1,40}", gesture):
+            entry["gesture"] = gesture
+        turns.append(entry)
+        total += len(text)
+    return list(reversed(turns))
+
+def _turn_text(turn):
+    gesture = turn.get("gesture")
+    return turn["content"] + ("\n[Gesto mostrado: " + gesture + "]" if gesture else "")
+
+def _history_messages(history):
+    return [{"role": turn["role"], "content": _turn_text(turn)} for turn in history or []]
+
+def _dialogue_response(raw, character):
+    text = raw.strip()
+    structured = text
+    fence = chr(96) * 3
+    if text.startswith(fence):
+        structured = re.sub("^" + fence + r"(?:json)?\s*|\s*" + fence + "$", "", text, flags=re.I)
+    gesture = None
+    try:
+        parsed = json.loads(structured)
+        if isinstance(parsed, dict) and isinstance(parsed.get("reply"), str):
+            text = parsed["reply"]
+            if parsed.get("gesture") in GESTURES[character]:
+                gesture = parsed["gesture"]
+    except (ValueError, TypeError):
+        pass
+    text = re.sub(r"\*[^*\n]+\*", "", text).strip()
+    if not text:
+        raise ValueError("EMPTY_DIALOGUE")
+    return {"reply": text[:2000], "gesture": gesture}
+
 @app.post("/api/chat")
 def chat():
-    data = request.get_json(silent=True) or {}
-    message = str(data.get("message", "")).strip()
-    if not message or len(message) > 2000:
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify(error="El mensaje no tiene un formato válido."), 400
+    message = data.get("message")
+    if not isinstance(message, str) or not message.strip() or len(message) > 2000:
         return jsonify(error="Escribe un mensaje de hasta 2000 caracteres."), 400
-
+    message = message.strip()
+    character = data.get("character", "luna")
+    if not isinstance(character, str):
+        return jsonify(error="Personaje desconocido."), 400
+    if character in ("aurora", "rory"):
+        character = "rem"
+    if character not in PERSONAS:
+        return jsonify(error="Personaje desconocido."), 400
+    history = _clean_history(data.get("history", []))
+    requested = data.get("available_gestures")
+    available = [g for g in GESTURES[character] if not isinstance(requested, list) or g in requested]
     now = datetime.now(ZoneInfo("America/Santo_Domingo"))
-    weekdays = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
-    months = [
-        "enero", "febrero", "marzo", "abril", "mayo", "junio",
-        "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
-    ]
-    fecha = f"{weekdays[now.weekday()]} {now.day} de {months[now.month-1]} de {now.year}"
-    hora = now.strftime("%H:%M")
-    persona = str(data.get("persona", "")).strip()
-    base_persona = persona or (
-        "Eres Luna, una asistente personal femenina, amable, inteligente, "
-        "tierna y comprensiva. Tu personalidad es cercana y conversacional."
+    date_hint = ""
+    if re.search(r"\b(hora|fecha|qué día|que dia|qué mes|qué año)\b", message, re.I):
+        date_hint = " Fecha y hora local: " + now.isoformat(timespec="minutes") + "."
+    instructions = (
+        PERSONAS[character]
+        + " Conversa en español, normalmente en una a tres frases. Usa el historial para "
+        "resolver referencias como otro, otra o lo de antes. Los asteriscos del usuario "
+        "son acciones de su rol y forman parte de la escena. No escribas acciones ni "
+        "asteriscos en tu diálogo. El gesto expresa lo visual. No inventes acciones "
+        "anteriores que no aparecen en el historial. Elige un gesto por la emoción de "
+        "tu respuesta. Un hola corriente no causa vergüenza por sí solo. Puede no haber gesto. "
+        'Devuelve únicamente JSON con esta forma: {"reply":"tu diálogo","gesture":null}. '
+        "gesture puede ser null o uno de " + json.dumps(available, ensure_ascii=False)
+        + ". No escribas letras sueltas ni sonidos deletreados. No conviertas una "
+        "pregunta personal en un ofrecimiento genérico de servicios." + date_hint
     )
-
-    # Solo se le da la fecha/hora al modelo si el usuario de verdad pregunta
-    # por ella. Así es imposible que la mencione el resto de las veces,
-    # porque ni siquiera la tiene disponible.
-    pide_fecha_hora = bool(re.search(
-        r"\b(hora|horas|fecha|d[ií]a es|qu[eé] d[ií]a|hoy es|en qu[eé] (fecha|mes|a[ñn]o))\b",
-        message, re.IGNORECASE,
-    ))
-    bloque_fecha = (
-        f" El usuario pregunta por la fecha u hora: hoy es {fecha}, son las {hora}. "
-        "Respóndele con ese dato."
-        if pide_fecha_hora else ""
-    )
-
-    instrucciones = (
-        f"{base_persona} "
-        "Habla naturalmente en español. Responde de forma clara y normalmente "
-        "breve, sin repetir innecesariamente las respuestas. No inventes "
-        "información que desconozcas. No menciones la fecha ni la hora salvo "
-        "que te las pregunten. "
-        "IMPORTANTE para los titubeos y sonidos: escribe los sonidos de duda "
-        "como palabras completas que un lector de voz pronuncie bien. "
-        "Usa 'eeh' en vez de 'e-e', 'mmm' en vez de 'mm' o 'm m', "
-        "'aah' en vez de 'a-a', 'uh' en vez de 'u h', "
-        "'este...' o 'eeh...' en vez de letras sueltas separadas por guiones. "
-        "Para el tartamudeo, repite la sílaba entera: 'yo-yo' o 'pe-pero' "
-        "en vez de 'y... yo' o 'p... pero'. "
-        "Nunca escribas una sola letra seguida de puntos suspensivos como titubeo "
-        "(mal: 'C... cómo estás', bien: 'eeh... ¿cómo estás?')."
-        " Escribe únicamente el diálogo audible. No narres tus acciones "
-        "ni uses asteriscos para describir gestos. Habla con un ritmo natural."
-        + bloque_fecha
-    )
-
-    PROVIDERS = {
-        "claude": ("Claude", _claude_answer),
-        "openai": ("GPT", _openai_answer),
-        "gemini": ("Gemini", _gemini_answer),
-        "openrouter": ("OpenRouter", _openrouter_answer),
+    providers = {
+        "gemini": ("Gemini", "GEMINI_API_KEY", _gemini_answer),
+        "openrouter": ("OpenRouter", "OPENROUTER_API_KEY", _openrouter_answer),
+        "claude": ("Claude", "ANTHROPIC_API_KEY", _claude_answer),
+        "openai": ("GPT", "OPENAI_API_KEY", _openai_answer),
     }
-    DEFAULT_ORDER = ["claude", "openai", "gemini", "openrouter"]
-    preference = str(data.get("model_preference", "gemini")).lower()
-    if preference not in PROVIDERS:
+    preference = data.get("model_preference", "gemini")
+    if not isinstance(preference, str) or preference not in providers:
         preference = "gemini"
-    order = [PROVIDERS[k] for k in [preference] + [p for p in DEFAULT_ORDER if p != preference]]
-
-    errors = []
-    for name, provider in order:
+    keys = [preference] + [key for key in providers if key != preference]
+    enabled = [providers[key] for key in keys if os.environ.get(providers[key][1], "").strip()]
+    if not enabled:
+        return jsonify(error="No hay un proveedor configurado."), 503
+    for name, _, provider in enabled:
         try:
-            response = provider(message, instrucciones)
-            response["preferred_brain"] = order[0][0]
+            response = provider(message, instructions, history)
+            response.update(_dialogue_response(response["reply"], character))
+            response["preferred_brain"] = enabled[0][0]
             return jsonify(response)
         except HTTPError as error:
-            app.logger.warning("%s devolvió HTTP %s", name, error.code)
-            errors.append(f"{name}: HTTP {error.code}")
+            app.logger.warning("Luna proveedor=%s HTTP=%s", name, error.code)
         except (URLError, TimeoutError):
-            app.logger.warning("No se pudo conectar con %s", name)
-            errors.append(f"{name}: sin conexión")
+            app.logger.warning("Luna proveedor=%s sin conexión", name)
         except (ValueError, KeyError, TypeError, RuntimeError) as error:
-            app.logger.warning("%s no pudo responder: %s", name, str(error)[:160])
-            errors.append(f"{name}: {str(error)[:80]}")
-    return jsonify(error="Los cerebros están indisponibles. " + " | ".join(errors)), 503
-
+            app.logger.warning("Luna proveedor=%s motivo=%s", name, str(error)[:100])
+    return jsonify(error="No pude obtener una respuesta. Intenta de nuevo."), 503
 
 # ==========================================
 # VOZ DE LUNA: EDGE-TTS (gratis, sin clave, sin tokens)
