@@ -115,6 +115,16 @@ canvas{display:block}
 #poses::-webkit-scrollbar-thumb{background:rgba(var(--accrgb),.5);border-radius:6px}
 #app:not([data-mode=avatar]) #poses{display:none}
 #poses label{width:46px;height:46px;border:1px solid var(--ln);border-radius:10px;background:rgba(14,9,34,.8);padding:0;overflow:hidden;display:grid;place-items:center;color:var(--vio);font-size:22px}
+#wardrobe{position:absolute;left:calc(3% + 54px);bottom:calc(3% + 4px);z-index:5;max-width:calc(94% - 54px)}
+#app:not([data-mode=avatar]) #wardrobe{display:none}
+#wardrobe summary,#wardrobe button,#wardrobe select{color:var(--tx);background:#160e2a;border:1px solid var(--ln);border-radius:10px;padding:9px;font:inherit}
+#wardrobe summary,#wardrobe button{cursor:pointer}
+#wardrobe .preview-panel{position:absolute;bottom:calc(100% + 8px);left:0;display:grid;gap:8px;padding:12px;background:#110b21;border:1px solid var(--ln);border-radius:12px;width:min(260px,calc(94vw - 54px))}
+#wardrobe .preview-panel label{display:grid;gap:4px}
+#wardrobe select{width:100%;min-width:0}
+#wardrobe-status{margin:0;min-height:1.2em;color:var(--mu)}
+#av[data-preview=true] #avimg{animation:none}
+#av[data-preview=true]:before,#av[data-preview=true]:after,#av[data-preview=true] .fog{visibility:hidden}
 #log{position:absolute;right:3%;bottom:3%;width:min(340px,44%);max-height:34%;overflow:auto;display:flex;flex-direction:column;gap:6px;z-index:4;scrollbar-width:thin}
 .m{padding:8px 11px;border-radius:12px;background:rgba(25,15,45,.88);border:1px solid rgba(var(--accrgb),.35);font-size:12.5px;transition:border-color .6s}
 .m.yo{align-self:flex-end;background:rgba(60,18,95,.9);border-color:var(--acc1)}
@@ -146,6 +156,16 @@ form button[type=submit]{background:linear-gradient(135deg,var(--acc1),var(--acc
  <div id="chars" role="group" aria-label="Personalidad"><button data-c="dracona" aria-pressed="true">Dracona</button><button data-c="rem" aria-pressed="false">Aurora</button><button data-c="luna" aria-pressed="false">Luna</button></div>
  <label id="holo">Holograma <input type="range" id="hr" min="0" max="100" value="55" aria-label="Intensidad del holograma"></label>
  <div id="poses"><label id="load" tabindex="0" title="Cargar imágenes">+<input type="file" id="file" accept="image/*" multiple hidden></label></div>
+ <details id="wardrobe">
+  <summary>Vestuario y gestos</summary>
+  <div class="preview-panel">
+   <label>Atuendo<select id="outfitChoice"></select></label>
+   <label>Animación<select id="gestureChoice"></select></label>
+   <button type="button" id="playGesture">Reproducir GIF</button>
+   <label><span><input type="checkbox" id="autoOutfit" checked> Cambiar de ropa automáticamente</span></label>
+   <p id="wardrobe-status" role="status"></p>
+  </div>
+ </details>
  <div id="log" hidden></div>
 </main>
 <footer>
@@ -255,7 +275,7 @@ resize();requestAnimationFrame(loop);
 if('speechSynthesis' in window){speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices()}
 const LBL={idle:'Lista',listening:'Escuchando',thinking:'Pensando',speaking:'Hablando'};
 function setState(s){state=s;$('#st').dataset.s=s;$('#stt').textContent=LBL[s]}
-function setMode(m){mode=m;modeT=performance.now();if(m==='avatar'){const v=$('#av');v.classList.remove('rev');void v.offsetWidth;v.classList.add('rev')}app.dataset.mode=m;document.querySelectorAll('.tog button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===m))}
+function setMode(m){mode=m;modeT=performance.now();if(m==='core')showSelectedOutfit();if(m==='avatar'){const v=$('#av');v.classList.remove('rev');void v.offsetWidth;v.classList.add('rev')}app.dataset.mode=m;document.querySelectorAll('.tog button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===m))}
 $('#hr').oninput=e=>app.style.setProperty('--h',e.target.value/100);
 $('#pal').onclick=()=>{
   pal=pal?0:1;
@@ -326,6 +346,8 @@ async function ask(q){
   if(!r.ok)throw new Error(j.error||'Error del servidor');
   add('luna',j.reply);
   if(character!==cur){setState('idle');return}
+  const gesture=requestedGesture(character,q);
+  if(gesture&&!calm&&mode==='avatar'&&!$('#wardrobe').open)playGesture(gesture);
   const line=spokenText(j.reply);
   if(line)speak(line,character);
   else setState('idle');
@@ -383,26 +405,41 @@ const wardrobeAdditions={"dracona": ["/static/characters/dracona-maid-cafe.png",
 for(const [character,images] of Object.entries(wardrobeAdditions))CH[character].p.push(...images);
 let cur='dracona';
 const PAL={w1:'#35e1ff',w2:'#b86bff',bar0:'#8b32fa',bar1:'#36dfff',r0:'#d455ff',r1:'#35e1ff',r2:'#8547dc'};
-let imageTimer;
-function setImg(url){
- const im=$('#avimg');
- clearTimeout(imageTimer);
- im.style.opacity=0;
- imageTimer=setTimeout(()=>{
-  im.src=url;
-  $('#av').style.setProperty('--img','url("'+url+'")');
-  im.style.opacity='';
- },160);
+let imageRequest=0, gestureTimer;
+function setImg(url, onReady, onError){
+ const request=++imageRequest;
+ const pending=new Image();
+ pending.onload=()=>{
+  if(request!==imageRequest)return;
+  const avatar=$('#av');
+  $('#avimg').src=url;
+  avatar.style.setProperty('--img','url("'+url+'")');
+  avatar.dataset.preview=onReady?'true':'false';
+  if(onReady)onReady();
+ };
+ pending.onerror=()=>{if(request===imageRequest&&onError)onError()};
+ pending.src=url;
+}
+function showSelectedOutfit(){
+ clearTimeout(gestureTimer);
+ const c=CH[cur];
+ $('#av').dataset.preview='false';
+ const selected=c.p[c.sel];
+ if(!selected)return;
+ setImg(selected,undefined,()=>{
+  if(c.p[0]!==selected)setImg(c.p[0]);
+  $('#wardrobe-status').textContent='Este atuendo no está disponible.';
+ });
 }
 function render(){const c=CH[cur];
- const has=c.p.length>0;$('#av').classList.toggle('has',has);app.classList.toggle('has',has);if(has)setImg(c.p[c.sel]);
+ const has=c.p.length>0;$('#av').classList.toggle('has',has);app.classList.toggle('has',has);if(has)showSelectedOutfit();
  $('#et').textContent=c.name;$('#mav').textContent=c.name;app.style.setProperty('--t1',c.t[0]);app.style.setProperty('--t2',c.t[1]);app.style.setProperty('--gl',c.gl);
  if(c.ui){app.style.setProperty('--acc1',c.ui[0]);app.style.setProperty('--acc2',c.ui[1]);app.style.setProperty('--accrgb',c.ui[2])}
  if(c.pal){PAL.w1=c.pal[0];PAL.w2=c.pal[1];PAL.bar0=c.pal[2];PAL.bar1=c.pal[3];PAL.r0=c.pal[4];PAL.r1=c.pal[1];PAL.r2=c.pal[2];pal=c.pm}
  if(c.ui)ACC=c.ui[2];
  if(c.core){CORE0=c.core[0];CORE1=c.core[1]}
  if(c.exp){EXPER=c.exp[0];SHARP=c.exp[1];PULSE=c.exp[2];app.style.setProperty('--breathe',c.exp[0]+'s')}
- coreChar=cur;app.dataset.char=cur}
+ coreChar=cur;app.dataset.char=cur;syncWardrobe()}
 function reveal(){const v=$('#av');v.classList.remove('rev');void v.offsetWidth;v.classList.add('rev')}
 function addPoses(files){
  const images=[...files].filter(file=>file.type.startsWith('image/'));
@@ -416,23 +453,69 @@ function addPoses(files){
 document.querySelectorAll('#chars button').forEach(b=>b.onclick=()=>{cur=b.dataset.c;document.querySelectorAll('#chars button').forEach(x=>x.setAttribute('aria-pressed',x===b));render();reveal()});
 // Atuendo aleatorio al arrancar: cada personaje empieza en una pose distinta
 Object.values(CH).forEach(c=>{if(c.p&&c.p.length>1)c.sel=Math.floor(Math.random()*c.p.length)});
+const reactions={"dracona": {"puchero": {"label": "Puchero", "url": "/static/characters/dracona-puchero.gif", "duration": 2610}, "mejilla-sonrojada": {"label": "Mejilla sonrojada", "url": "/static/characters/dracona-mejilla-sonrojada.gif", "duration": 2280}, "se-hace-la-indiferente": {"label": "Se hace la indiferente", "url": "/static/characters/dracona-se-hace-la-indiferente.gif", "duration": 2280}, "marca-distancia": {"label": "Marca distancia", "url": "/static/characters/dracona-marca-distancia.gif", "duration": 2280}, "mirada-de-fastidio": {"label": "Mirada de fastidio", "url": "/static/characters/dracona-mirada-de-fastidio.gif", "duration": 2280}, "accidente-con-harina": {"label": "Accidente con la batidora", "url": "/static/characters/dracona-accidente-con-harina.gif", "duration": 2670}, "espera": {"label": "Espera impaciente", "url": "/static/characters/dracona-espera.gif", "duration": 2280}, "estornudo": {"label": "Estornudo", "url": "/static/characters/dracona-estornudo.gif", "duration": 1980}}, "rem": {"sonrojo": {"label": "Sonrojo", "url": "/static/characters/aurora-sonrojo.gif", "duration": 2750}, "mirada-timida": {"label": "Mirada tímida", "url": "/static/characters/aurora-mirada-timida.gif", "duration": 2280}, "juega-con-dedos": {"label": "Juega con los dedos", "url": "/static/characters/aurora-juega-con-dedos.gif", "duration": 2280}, "se-tapa-la-cara": {"label": "Se tapa la cara", "url": "/static/characters/aurora-se-tapa-la-cara.gif", "duration": 2280}, "se-esconde-en-la-manga": {"label": "Se esconde en la manga", "url": "/static/characters/aurora-se-esconde-en-la-manga.gif", "duration": 2280}, "accidente-con-harina": {"label": "Accidente con la batidora", "url": "/static/characters/aurora-accidente-con-harina.gif", "duration": 2670}, "lee": {"label": "Lee un libro", "url": "/static/characters/aurora-lee.gif", "duration": 2280}, "estornudo": {"label": "Estornudo", "url": "/static/characters/aurora-estornudo.gif", "duration": 1980}}, "luna": {"agenda": {"label": "Revisa la agenda", "url": "/static/characters/luna-agenda.gif", "duration": 2280}, "bienvenida": {"label": "Saluda con la mano", "url": "/static/characters/luna-bienvenida.gif", "duration": 2280}}};
+
+function syncWardrobe(){
+ const c=CH[cur],outfit=$('#outfitChoice'),gesture=$('#gestureChoice');
+ outfit.replaceChildren(...c.p.map((url,i)=>{
+  const label=url.startsWith('blob:')?'Imagen cargada '+(i+1):
+   decodeURIComponent(url.split('/').at(-1)).replace(/\.png$/i,'').replace(/^(dracona|aurora|fusion)[_-](vestuario[_-])?/i,'').replace(/[_-]/g,' ');
+  return new Option(label,i);
+ }));
+ outfit.value=String(c.sel);
+ gesture.replaceChildren(...Object.entries(reactions[cur]).map(([id,clip])=>new Option(clip.label,id)));
+ $('#wardrobe-status').textContent='';
+}
+function requestedGesture(character,text){
+ const line=text.trim().toLocaleLowerCase('es');
+ if(character==='luna'){
+  if(/^(?:[¡¿]\s*)?(hola|buenas|buenos días)\b/.test(line))return 'bienvenida';
+  if(/\b(revisa|abre|anota)\b.*\bagenda\b/.test(line))return 'agenda';
+ }
+ if(/\bestornud(?:a|as|o|ó)\b/.test(line)&&character!=='luna')return 'estornudo';
+ if(character==='rem'&&/\b(lee|leyendo|abre)\b.*\b(libro|cuento)\b/.test(line))return 'lee';
+ if(character==='dracona'&&/\b(llegué tarde|te hice esperar|te dejé esperando)\b/.test(line))return 'espera';
+ return null;
+}
+function playGesture(id){
+ const clip=reactions[cur][id];
+ if(!clip||mode!=='avatar')return;
+ clearTimeout(gestureTimer);
+ $('#wardrobe-status').textContent='';
+ const status=$('#wardrobe-status');
+ setImg(clip.url+'?play='+String(imageRequest+1),()=>{
+  status.textContent=clip.label;
+  gestureTimer=setTimeout(showSelectedOutfit,clip.duration);
+ },()=>{
+  status.textContent='No se pudo cargar este GIF.';
+  showSelectedOutfit();
+ });
+}
+$('#outfitChoice').onchange=e=>{
+ CH[cur].sel=Number(e.target.value);
+ $('#wardrobe-status').textContent='';
+ showSelectedOutfit();
+};
+$('#playGesture').onclick=()=>playGesture($('#gestureChoice').value);
 render();
 
 const awayAfter=4*60*1000;
 const cookingScenes={
- dracona:['dracona-delantal-volantes.png','dracona-accidente-con-harina.gif'],
- rem:['aurora-delantal-volantes.png','aurora-accidente-con-harina.gif']
+ dracona:'dracona-delantal-volantes.png',
+ rem:'aurora-delantal-volantes.png'
 };
-let lastActivity=Date.now(), changedWhileAway=false, lastScene=0, sceneTimer;
+let lastActivity=Date.now(), changedWhileAway=false, lastScene=0;
 function readyForWardrobe(){
- return mode==='avatar'&&state==='idle'&&!$('#q').value.trim()&&!document.hidden;
+ return mode==='avatar'&&state==='idle'&&!$('#q').value.trim()&&!document.hidden
+  &&!$('#wardrobe').open&&$('#autoOutfit').checked&&$('#av').dataset.preview!=='true';
 }
 function pickAnotherOutfit(){
  const c=CH[cur];
  if(c.p.length<2)return;
  const next=Math.floor(Math.random()*(c.p.length-1));
  c.sel=next>=c.sel?next+1:next;
- setImg(c.p[c.sel]);
+ $('#outfitChoice').value=String(c.sel);
+ showSelectedOutfit();
 }
 function recordActivity(){
  const now=Date.now(), away=now-lastActivity>=awayAfter;
@@ -440,14 +523,11 @@ function recordActivity(){
  if(away&&readyForWardrobe()){
   const scene=cookingScenes[cur];
   if(scene&&!calm&&now-lastScene>=15*60*1000){
-   const character=cur,c=CH[character];
-   c.sel=c.p.indexOf('/static/characters/'+scene[0]);
+   const c=CH[cur];
+   c.sel=c.p.indexOf('/static/characters/'+scene);
+   $('#outfitChoice').value=String(c.sel);
    lastScene=now;
-   setImg('/static/characters/'+scene[1]);
-   clearTimeout(sceneTimer);
-   sceneTimer=setTimeout(()=>{
-    if(cur===character&&mode==='avatar')setImg(c.p[c.sel]);
-   },2670);
+   playGesture('accidente-con-harina');
   }else if(!changedWhileAway)pickAnotherOutfit();
  }
  changedWhileAway=false;
