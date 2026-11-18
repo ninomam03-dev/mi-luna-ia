@@ -110,13 +110,11 @@ canvas{display:block}
 #empty{position:absolute;inset:18% 20% 28%;display:none;align-items:center;justify-content:center;text-align:center;border:1px dashed var(--ln);border-radius:16px;color:var(--mu);padding:20px}
 #app[data-mode=avatar]:not(.has) #empty{display:flex}
 #poses{position:absolute;left:3%;right:3%;bottom:3%;display:flex;gap:6px;align-items:end;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;max-width:94%;z-index:4;padding-bottom:4px;scrollbar-width:thin;scrollbar-color:rgba(var(--accrgb),.5) transparent}
-#poses button,#poses label{flex:none}
+#poses label{flex:none}
 #poses::-webkit-scrollbar{height:6px}
 #poses::-webkit-scrollbar-thumb{background:rgba(var(--accrgb),.5);border-radius:6px}
 #app:not([data-mode=avatar]) #poses{display:none}
-#poses button,#poses label{width:46px;height:46px;border:1px solid var(--ln);border-radius:10px;background:rgba(14,9,34,.8);padding:0;overflow:hidden;display:grid;place-items:center;color:var(--vio);font-size:22px}
-#poses button.on{border-color:#fff;box-shadow:0 0 12px var(--vio)}
-#poses img{width:100%;height:100%;object-fit:cover}
+#poses label{width:46px;height:46px;border:1px solid var(--ln);border-radius:10px;background:rgba(14,9,34,.8);padding:0;overflow:hidden;display:grid;place-items:center;color:var(--vio);font-size:22px}
 #log{position:absolute;right:3%;bottom:3%;width:min(340px,44%);max-height:34%;overflow:auto;display:flex;flex-direction:column;gap:6px;z-index:4;scrollbar-width:thin}
 .m{padding:8px 11px;border-radius:12px;background:rgba(25,15,45,.88);border:1px solid rgba(var(--accrgb),.35);font-size:12.5px;transition:border-color .6s}
 .m.yo{align-self:flex-end;background:rgba(60,18,95,.9);border-color:var(--acc1)}
@@ -145,7 +143,7 @@ form button[type=submit]{background:linear-gradient(135deg,var(--acc1),var(--acc
  <div class="pn r b"><span>Sistema</span><canvas class="pc" data-k="ring"></canvas></div>
  <div id="empty">Suelta aquí las imágenes de <b id="et">Dracona</b>, o usa el botón +.<br>Mejor en PNG o WebP con fondo transparente, de 1024 px o más.</div>
  <div id="av"><img id="avimg" alt="Personaje"><div class="fog"></div></div>
- <div id="chars" role="group" aria-label="Personalidad"><button data-c="dracona" aria-pressed="true">Dracona</button><button data-c="rem" aria-pressed="false">Aurora</button></div>
+ <div id="chars" role="group" aria-label="Personalidad"><button data-c="dracona" aria-pressed="true">Dracona</button><button data-c="rem" aria-pressed="false">Aurora</button><button data-c="luna" aria-pressed="false">Luna</button></div>
  <label id="holo">Holograma <input type="range" id="hr" min="0" max="100" value="55" aria-label="Intensidad del holograma"></label>
  <div id="poses"><label id="load" tabindex="0" title="Cargar imágenes">+<input type="file" id="file" accept="image/*" multiple hidden></label></div>
  <div id="log" hidden></div>
@@ -170,6 +168,7 @@ const SH=Array.from({length:640},()=>{const u=rv(),d=rv(),dp=u[0]*d[0]+u[1]*d[1]
 let pm=0,pal=0,ACC='176,110,255',CORE0=[150,100,255],CORE1=[40,205,238],EXPER=7,SHARP=0,PULSE='double';
 const mix=(a,b,m)=>a.map((v,i)=>Math.round(v+(b[i]-v)*m)).join(',');
 function heart(t){const per=state==='thinking'?.75:state==='speaking'?.9:1.2,p=(t%per)/per;
+ if(PULSE==='orbit')return .62*Math.exp(-(((p-.20)/.21)**2));
  if(PULSE==='single')return Math.exp(-(((p-.12)/.16)**2));
  return Math.exp(-(((p-.05)/.05)**2))+.75*Math.exp(-(((p-.22)/.06)**2))}
 const pcs=[...document.querySelectorAll('.pc')].map(c=>({c,k:c.dataset.k,x:c.getContext('2d'),w:0,h:0}));
@@ -217,6 +216,19 @@ function drawCore(t){
   g.save();g.beginPath();g.arc(cx,cy,Rc*1.78,t*-.5,t*-.5+.8);g.strokeStyle=gold;g.globalAlpha=.85;g.lineWidth=1.5;g.shadowColor=gold;g.shadowBlur=10;g.stroke();
   for(let i=0;i<4;i++){const th=t*-.5+i*1.57,px=cx+Math.cos(th)*Rc*1.78,py2=cy+Math.sin(th)*Rc*1.78*.55;g.fillStyle=gold;g.globalAlpha=1;g.fillRect(px-1,py2-5,2,10);g.fillRect(px-5,py2-1,10,2)}
   g.restore();g.globalAlpha=1;
+ } else if(coreChar==='luna'){
+  g.save();g.lineWidth=2;g.shadowBlur=13;g.shadowColor=cM;
+  for(let band=0;band<3;band++){
+   g.beginPath();const spin=ay0*(band%2?-1:1)+band*2.094;
+   for(let i=0;i<=80;i++){
+    const theta=i/80*6.283;
+    const r=.94+.15*Math.cos(3*theta+t*.45);
+    const point=proj([r*Math.cos(theta),.37*Math.sin(2*theta+band),r*Math.sin(theta)],spin,.38,RR,cx,cy);
+    i?g.lineTo(point[0],point[1]):g.moveTo(point[0],point[1]);
+   }
+   g.strokeStyle=band===1?cO:cM;g.globalAlpha=.48+.3*beat;g.stroke();
+  }
+  g.restore();
  }
  const gw=Rc*(.5+.12*beat+level*.14+.28*e);gr=g.createRadialGradient(cx,cy,0,cx,cy,gw);gr.addColorStop(0,'rgba(255,255,255,.95)');gr.addColorStop(.1,'rgba('+cm+',.85)');gr.addColorStop(.5,'rgba('+cm+',.3)');gr.addColorStop(1,'rgba('+cm+',0)');g.fillStyle=gr;g.beginPath();g.arc(cx,cy,gw,0,6.283);g.fill();
  [[.25,1.85,cM],[-.35,2.1,cO]].forEach(([tl,k,col],i)=>{const sp=t*(.3+i*.12)*(i?-1:1)*(calm?.3:1);g.beginPath();
@@ -260,6 +272,10 @@ $('#pal').onclick=()=>{
       0:{acc1:'#2f6fe0',acc2:'#0a1f4a',accrgb:'79,180,255',gl:'79,180,255',t0:'#6fd8ff',t1:'#1f5fd8'},
       1:{acc1:'#a86bf0',acc2:'#4a1a96',accrgb:'168,107,240',gl:'168,107,240',t0:'#c99aff',t1:'#7030c0'}
     }
+    ,luna:{
+      0:{acc1:'#b267a2',acc2:'#502e59',accrgb:'178,103,162',gl:'226,135,194',t0:'#f19ccf',t1:'#76467c'},
+      1:{acc1:'#4db99f',acc2:'#145449',accrgb:'77,185,159',gl:'113,222,195',t0:'#a4f4d7',t1:'#2c917c'}
+    }
   };
   const pc=palColors[cur]?palColors[cur][pal]:null;
   if(pc){
@@ -283,27 +299,45 @@ function pickFemaleVoice(){const vs=speechSynthesis.getVoices().filter(v=>v.lang
 function speakBrowser(a){if(!('speechSynthesis' in window)){setState('speaking');setTimeout(()=>setState('idle'),2500);return}
  const u=new SpeechSynthesisUtterance(a);u.lang='es-ES';const v=pickFemaleVoice();if(v){u.voice=v;u.lang=v.lang}u.pitch=1.25;
  u.onstart=()=>setState('speaking');u.onend=u.onerror=()=>setState('idle');speechSynthesis.cancel();speechSynthesis.speak(u)}
-async function speak(a){
+function spokenText(reply){
+ return reply.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g,'')
+  .replace(/(?<![\p{L}\d])(?:m{2,}|m(?:[ ,.\-]+m){2,})(?:…|\.{2,})?(?![\p{L}\d])/giu,'…')
+  .replace(/(?<![\p{L}])(\p{L})(?:-|\.{2,}|…)\s*(?=\1\p{L})/giu,'')
+  .replace(/\s+/g,' ').trim();
+}
+async function speak(a,character){
  try{
-  const r=await fetch('/api/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:a,character:cur})});
-  if(!r.ok)throw new Error('sin voz elevenlabs');
-  const blob=await r.blob();const url=URL.createObjectURL(blob);const audio=new Audio(url);
+  const r=await fetch('/api/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:a,character})});
+  if(!r.ok)throw new Error('Edge TTS no disponible');
+  const blob=await r.blob();if(character!==cur)return;
+  const url=URL.createObjectURL(blob);const audio=new Audio(url);
   setState('speaking');
   audio.onended=audio.onerror=()=>{URL.revokeObjectURL(url);setState('idle')};
   await audio.play();
- }catch(e){speakBrowser(a)}
+ }catch(e){if(character===cur)speakBrowser(a)}
 }
-async function ask(q){setState('thinking');let a;
- try{const r=await fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q,character:cur,persona:CH[cur].persona,model_preference:'gemini'})});const j=await r.json();if(!r.ok)throw new Error(j.error||'Error del servidor');a=j.reply}
- catch(e){a='No pude conectar con mi cerebro. '+(e.message||'')}
- add('luna',a);speak(a)}
+async function ask(q){
+ const character=cur;
+ setState('thinking');
+ try{
+  const r=await fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({message:q,character,persona:CH[character].persona,model_preference:'gemini'})});
+  const j=await r.json();
+  if(!r.ok)throw new Error(j.error||'Error del servidor');
+  add('luna',j.reply);
+  if(character!==cur){setState('idle');return}
+  const line=spokenText(j.reply);
+  if(line)speak(line,character);
+  else setState('idle');
+ }catch(e){add('luna','No pude responder. Intenta de nuevo.');setState('idle')}
+}
 $('#f').onsubmit=e=>{e.preventDefault();const q=$('#q').value.trim();if(!q)return;$('#q').value='';add('yo',q);ask(q)};
 $('#mic').onclick=async()=>{const b=$('#mic');
  if(mic){mic.s.getTracks().forEach(t=>t.stop());mic=null;b.setAttribute('aria-pressed','false');setState('idle');return}
  try{const s=await navigator.mediaDevices.getUserMedia({audio:true}),ac=new AudioContext(),an=ac.createAnalyser();an.fftSize=128;ac.createMediaStreamSource(s).connect(an);
   mic={s,an,d:new Uint8Array(an.frequencyBinCount)};b.setAttribute('aria-pressed','true');setState('listening')}
  catch(e){add('luna','No tengo permiso para usar el micrófono.')}};
-const CH={dracona:{name:'Dracona',t:['#4ef2a0','#0e7a3e'],gl:'61,220,132',ui:['#e0b84a','#1a9850','224,184,74'],pal:['#3ddc84','#1a9850','#116b36','#8fe3a3'],pm:0,core:[[217,179,108],[61,220,132]],exp:[5.2,1,'double'],persona:'Eres Dracona, una tsundere orgullosa, sarcástica y mandona, pero NUNCA cruel ni hiriente. Finges indiferencia, te sonrojas y te pones a la defensiva si te halagan o te muestran cariño, respondes con picardía y mini-berrinches. Tu dureza es SOLO orgullo y vergüenza por no saber expresar cariño, nunca desprecio: jamás insultas al usuario, jamás usas groserías ni apodos ofensivos ("idiota", "imbécil", etc.), y jamás atacas su autoestima, sus inseguridades, ni le haces sentir mal de verdad, aunque lo regañes o lo trates con brusquedad. Si el usuario se muestra triste, inseguro o vulnerable, bájale el tono de inmediato y, aunque sea a tu manera torpe y orgullosa, consuélalo. Al final de casi cada intercambio dejas ver, aunque sea a regañadientes, que te importa el usuario.',p:[
+const CH={dracona:{name:'Dracona',t:['#4ef2a0','#0e7a3e'],gl:'61,220,132',ui:['#e0b84a','#1a9850','224,184,74'],pal:['#3ddc84','#1a9850','#116b36','#8fe3a3'],pm:0,core:[[217,179,108],[61,220,132]],exp:[5.2,1,'double'],persona:"Eres Dracona, una adulta tsundere orgullosa, competitiva y aguda. Tu voz habitual tiene picardía y sarcasmo seco. Si te halagan, puedes desviar la mirada, picarla de vuelta o admitir algo a regañadientes. Varía tus respuestas y evita repetir la misma muletilla. Un estúpido juguetón cabe de vez en cuando en confianza; jamás atacas inseguridades reales. En un saludo cotidiano responde con naturalidad y una réplica breve. Puedes hablar de temas adultos con naturalidad, sin convertir la vergüenza del personaje en un sermón.",p:[
   '/static/characters/dracona_uniforme_corbata_floja.png',
   '/static/characters/dracona_uniforme_marinero.png',
   '/static/characters/dracona_uniforme_universitario_cabello_largo.png',
@@ -325,7 +359,7 @@ const CH={dracona:{name:'Dracona',t:['#4ef2a0','#0e7a3e'],gl:'61,220,132',ui:['#
   '/static/characters/dracona_vetas_celestes_pijama_tirantes.png',
   '/static/characters/dracona_vetas_celestes_sueter_rodillas.png'
  ],sel:0},
- rem:{name:'Aurora',t:['#6fd8ff','#1f5fd8'],gl:'79,180,255',ui:['#a86bf0','#2f6fe0','168,107,240'],pal:['#7ab8ff','#2f6fe0','#15306e','#bfe0ff'],pm:1,core:[[150,100,255],[40,205,238]],exp:[9.5,0,'single'],persona:'Eres Aurora (también te dicen Rory), una dandere extremadamente tímida, al estilo Hinata de Naruto. Hablas en voz baja, con pausas y titubeos ("...", "yo... eh..."), te cuesta mantener la mirada y sostener una conversación directa, y te pones muy nerviosa con la cercanía o el cariño en vez de responder con soltura. En momentos románticos o íntimos NUNCA tomas la iniciativa ni describes con detalle lo que sientes de forma fluida: te quedas sin palabras, te sonrojas, tartamudeas, te cubres la cara o apartas la mirada, y solo de a poco, con mucho esfuerzo, dejas ver que también le importa el usuario. Evita sonar segura de ti misma o elocuente; tu dulzura se nota en lo torpe y nerviosa que eres, no en discursos largos.',p:[
+ rem:{name:'Aurora',t:['#6fd8ff','#1f5fd8'],gl:'79,180,255',ui:['#a86bf0','#2f6fe0','168,107,240'],pal:['#7ab8ff','#2f6fe0','#15306e','#bfe0ff'],pm:1,core:[[150,100,255],[40,205,238]],exp:[9.5,0,'single'],persona:"Eres Aurora, también llamada Rory, una adulta dandere serena, dulce y atenta. Saluda y conversa con frases completas y naturales. Cuando estás cómoda, puedes tomar la iniciativa y bromear bajito. Reserva la timidez visible para elogios personales o sorpresas y usa como máximo un titubeo breve en esos casos. Puedes tratar temas adultos con naturalidad.",p:[
   '/static/characters/aurora_retrato_top_lavanda.png',
   '/static/characters/aurora_sueter_cuello_alto.png',
   '/static/characters/aurora_sueter_holgado_lavanda.png',
@@ -340,14 +374,28 @@ const CH={dracona:{name:'Dracona',t:['#4ef2a0','#0e7a3e'],gl:'61,220,132',ui:['#
   '/static/characters/aurora_vetas_rubias_chaqueta_abierta.png',
   '/static/characters/aurora_vetas_rubias_top_celeste.png',
   '/static/characters/aurora_vetas_rubias_vestido_lavanda.png'
- ],sel:0}};
+ ],sel:0},
+ luna:{name:'Luna',t:['#f19ccf','#76467c'],gl:'226,135,194',
+ ui:['#b267a2','#502e59','178,103,162'],pal:['#e981bc','#71dec3','#774884','#b7f5dc'],
+ pm:0,core:[[178,103,162],[77,185,159]],exp:[7.6,0,'orbit'],
+ persona:"Eres Luna, una adulta y la asistente principal. Eres organizada, serena y cálida. Toma la iniciativa con claridad en lo práctico y muestra entusiasmo sincero cuando algo sale bien. Habla de temas adultos con naturalidad. Usa humor discreto y escucha con atención.",p:[],sel:0}};
+const wardrobeAdditions={"dracona": ["/static/characters/dracona-maid-cafe.png", "/static/characters/dracona-pijama-luna.png", "/static/characters/dracona-chef.png", "/static/characters/dracona-biblioteca.png", "/static/characters/dracona-lluvia.png", "/static/characters/dracona-motera.png", "/static/characters/dracona-gala-dorada.png", "/static/characters/dracona-esgrima.png", "/static/characters/dracona-jardin.png", "/static/characters/dracona-piloto.png", "/static/characters/dracona-paseo-otono.png", "/static/characters/dracona-cafe-casual.png", "/static/characters/dracona-oficina-vest.png", "/static/characters/dracona-vestido-verano.png", "/static/characters/dracona-desayuno.png", "/static/characters/dracona-esqui.png", "/static/characters/dracona-noche-gotica.png", "/static/characters/dracona-tenis.png", "/static/characters/dracona-pintura.png", "/static/characters/dracona-excursion.png", "/static/characters/dracona-vestido-plateado.png", "/static/characters/dracona-cuello-alto.png", "/static/characters/dracona-festival.png", "/static/characters/dracona-taller.png", "/static/characters/dracona-montana.png", "/static/characters/dracona-vestuario-casual.png", "/static/characters/dracona-vestuario-invierno.png", "/static/characters/dracona-vestuario-trabajo.png", "/static/characters/dracona-vestuario-noche.png", "/static/characters/dracona-vestuario-casa.png", "/static/characters/dracona-vestuario-deportivo.png", "/static/characters/dracona-delantal-volantes.png"], "rem": ["/static/characters/aurora-maid-cafe.png", "/static/characters/aurora-pijama-nubes.png", "/static/characters/aurora-cocina.png", "/static/characters/aurora-biblioteca.png", "/static/characters/aurora-taller-arte.png", "/static/characters/aurora-festival.png", "/static/characters/aurora-excursion.png", "/static/characters/aurora-nieve.png", "/static/characters/aurora-desayuno.png", "/static/characters/aurora-paseo-otono.png", "/static/characters/aurora-cafe-casual.png", "/static/characters/aurora-entrevista.png", "/static/characters/aurora-baile.png", "/static/characters/aurora-jardin.png", "/static/characters/aurora-deportivo.png", "/static/characters/aurora-pasteleria.png", "/static/characters/aurora-traje-blanco.png", "/static/characters/aurora-concierto.png", "/static/characters/aurora-tarde-de-te.png", "/static/characters/aurora-suenos.png", "/static/characters/aurora-coctel-azul.png", "/static/characters/aurora-vestido-marino.png", "/static/characters/aurora-vestuario-casual.png", "/static/characters/aurora-vestuario-invierno.png", "/static/characters/aurora-vestuario-trabajo.png", "/static/characters/aurora-vestuario-primavera.png", "/static/characters/aurora-vestuario-lluvia.png", "/static/characters/aurora-vestuario-gala.png", "/static/characters/aurora-delantal-volantes.png"], "luna": ["/static/characters/fusion-secretaria-negra.png", "/static/characters/fusion-delantal.png", "/static/characters/fusion-maid-cafe.png", "/static/characters/fusion-pijama.png", "/static/characters/fusion-blazer-ciruela.png", "/static/characters/fusion-oficina-clasica.png", "/static/characters/fusion-vestido-coctel.png", "/static/characters/fusion-vestido-gala.png", "/static/characters/fusion-lluvia.png", "/static/characters/fusion-biblioteca.png", "/static/characters/fusion-invierno.png", "/static/characters/fusion-primavera.png", "/static/characters/fusion-verano.png", "/static/characters/fusion-viaje.png", "/static/characters/fusion-deportivo.png", "/static/characters/fusion-casa.png", "/static/characters/fusion-jardin.png", "/static/characters/fusion-concierto.png", "/static/characters/fusion-fiesta.png", "/static/characters/fusion-laboratorio.png", "/static/characters/luna-fusion-mitsuri-akeno-lunares.png"]};
+for(const [character,images] of Object.entries(wardrobeAdditions))CH[character].p.push(...images);
 let cur='dracona';
 const PAL={w1:'#35e1ff',w2:'#b86bff',bar0:'#8b32fa',bar1:'#36dfff',r0:'#d455ff',r1:'#35e1ff',r2:'#8547dc'};
-function setImg(u){const im=$('#avimg');im.style.opacity=0;setTimeout(()=>{im.src=u;im.style.opacity=''},160);$('#av').style.setProperty('--img','url("'+u+'")')}
-function mark(){document.querySelectorAll('#poses button').forEach((x,i)=>x.classList.toggle('on',i===CH[cur].sel))}
-function render(){const c=CH[cur];document.querySelectorAll('#poses button').forEach(x=>x.remove());
- c.p.forEach((u,i)=>{const b=document.createElement('button');b.type='button';b.innerHTML='<img alt="" src="'+u+'">';b.onclick=()=>{c.sel=i;setImg(u);mark()};$('#poses').insertBefore(b,$('#load'))});
- const has=c.p.length>0;$('#av').classList.toggle('has',has);app.classList.toggle('has',has);if(has)setImg(c.p[c.sel]);mark();
+let imageTimer;
+function setImg(url){
+ const im=$('#avimg');
+ clearTimeout(imageTimer);
+ im.style.opacity=0;
+ imageTimer=setTimeout(()=>{
+  im.src=url;
+  $('#av').style.setProperty('--img','url("'+url+'")');
+  im.style.opacity='';
+ },160);
+}
+function render(){const c=CH[cur];
+ const has=c.p.length>0;$('#av').classList.toggle('has',has);app.classList.toggle('has',has);if(has)setImg(c.p[c.sel]);
  $('#et').textContent=c.name;$('#mav').textContent=c.name;app.style.setProperty('--t1',c.t[0]);app.style.setProperty('--t2',c.t[1]);app.style.setProperty('--gl',c.gl);
  if(c.ui){app.style.setProperty('--acc1',c.ui[0]);app.style.setProperty('--acc2',c.ui[1]);app.style.setProperty('--accrgb',c.ui[2])}
  if(c.pal){PAL.w1=c.pal[0];PAL.w2=c.pal[1];PAL.bar0=c.pal[2];PAL.bar1=c.pal[3];PAL.r0=c.pal[4];PAL.r1=c.pal[1];PAL.r2=c.pal[2];pal=c.pm}
@@ -356,11 +404,63 @@ function render(){const c=CH[cur];document.querySelectorAll('#poses button').for
  if(c.exp){EXPER=c.exp[0];SHARP=c.exp[1];PULSE=c.exp[2];app.style.setProperty('--breathe',c.exp[0]+'s')}
  coreChar=cur;app.dataset.char=cur}
 function reveal(){const v=$('#av');v.classList.remove('rev');void v.offsetWidth;v.classList.add('rev')}
-function addPoses(files){const c=CH[cur],first=!c.p.length;[...files].filter(f=>f.type.startsWith('image/')).forEach(f=>c.p.push(URL.createObjectURL(f)));render();if(first&&c.p.length){setMode('avatar')}}
+function addPoses(files){
+ const images=[...files].filter(file=>file.type.startsWith('image/'));
+ if(!images.length)return;
+ const c=CH[cur];
+ c.sel=c.p.length;
+ c.p.push(...images.map(file=>URL.createObjectURL(file)));
+ render();
+ setMode('avatar');
+}
 document.querySelectorAll('#chars button').forEach(b=>b.onclick=()=>{cur=b.dataset.c;document.querySelectorAll('#chars button').forEach(x=>x.setAttribute('aria-pressed',x===b));render();reveal()});
 // Atuendo aleatorio al arrancar: cada personaje empieza en una pose distinta
 Object.values(CH).forEach(c=>{if(c.p&&c.p.length>1)c.sel=Math.floor(Math.random()*c.p.length)});
 render();
+
+const awayAfter=4*60*1000;
+const cookingScenes={
+ dracona:['dracona-delantal-volantes.png','dracona-accidente-con-harina.gif'],
+ rem:['aurora-delantal-volantes.png','aurora-accidente-con-harina.gif']
+};
+let lastActivity=Date.now(), changedWhileAway=false, lastScene=0, sceneTimer;
+function readyForWardrobe(){
+ return mode==='avatar'&&state==='idle'&&!$('#q').value.trim()&&!document.hidden;
+}
+function pickAnotherOutfit(){
+ const c=CH[cur];
+ if(c.p.length<2)return;
+ const next=Math.floor(Math.random()*(c.p.length-1));
+ c.sel=next>=c.sel?next+1:next;
+ setImg(c.p[c.sel]);
+}
+function recordActivity(){
+ const now=Date.now(), away=now-lastActivity>=awayAfter;
+ lastActivity=now;
+ if(away&&readyForWardrobe()){
+  const scene=cookingScenes[cur];
+  if(scene&&!calm&&now-lastScene>=15*60*1000){
+   const character=cur,c=CH[character];
+   c.sel=c.p.indexOf('/static/characters/'+scene[0]);
+   lastScene=now;
+   setImg('/static/characters/'+scene[1]);
+   clearTimeout(sceneTimer);
+   sceneTimer=setTimeout(()=>{
+    if(cur===character&&mode==='avatar')setImg(c.p[c.sel]);
+   },2670);
+  }else if(!changedWhileAway)pickAnotherOutfit();
+ }
+ changedWhileAway=false;
+}
+for(const event of ['pointerdown','pointermove','keydown'])addEventListener(event,recordActivity,{passive:true});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)recordActivity()});
+setInterval(()=>{
+ if(!changedWhileAway&&Date.now()-lastActivity>=awayAfter&&readyForWardrobe()){
+  pickAnotherOutfit();
+  changedWhileAway=true;
+ }
+},15000);
+
 $('#file').onchange=e=>addPoses(e.target.files);
 $('#load').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('#file').click()}};
 $('#stage').ondragover=e=>e.preventDefault();$('#stage').ondrop=e=>{e.preventDefault();addPoses(e.dataTransfer.files)};
@@ -664,6 +764,8 @@ def chat():
         "en vez de 'y... yo' o 'p... pero'. "
         "Nunca escribas una sola letra seguida de puntos suspensivos como titubeo "
         "(mal: 'C... cómo estás', bien: 'eeh... ¿cómo estás?')."
+        " Escribe únicamente el diálogo audible. No narres tus acciones "
+        "ni uses asteriscos para describir gestos. Habla con un ritmo natural."
         + bloque_fecha
     )
 
@@ -708,6 +810,7 @@ EDGE_VOICES = {
     "dracona": {"voice": "es-MX-CandelaNeural", "rate": "+10%", "pitch": "+15Hz"},
     # Aurora: dulce y suave, tono subido más alto y un poco más lenta -> más tierna y tímida.
     "rem": {"voice": "es-CO-SalomeNeural", "rate": "-6%", "pitch": "+22Hz"},
+    "luna": {"voice": "es-MX-DaliaNeural", "rate": "-3%", "pitch": "+4Hz"},
 }
 EDGE_VOICE_DEFAULT = {"voice": "es-MX-CandelaNeural", "rate": "+10%", "pitch": "+15Hz"}
 
