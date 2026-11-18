@@ -110,13 +110,11 @@ canvas{display:block}
 #empty{position:absolute;inset:18% 20% 28%;display:none;align-items:center;justify-content:center;text-align:center;border:1px dashed var(--ln);border-radius:16px;color:var(--mu);padding:20px}
 #app[data-mode=avatar]:not(.has) #empty{display:flex}
 #poses{position:absolute;left:3%;right:3%;bottom:3%;display:flex;gap:6px;align-items:end;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;max-width:94%;z-index:4;padding-bottom:4px;scrollbar-width:thin;scrollbar-color:rgba(var(--accrgb),.5) transparent}
-#poses button,#poses label{flex:none}
+#poses label{flex:none}
 #poses::-webkit-scrollbar{height:6px}
 #poses::-webkit-scrollbar-thumb{background:rgba(var(--accrgb),.5);border-radius:6px}
 #app:not([data-mode=avatar]) #poses{display:none}
-#poses button,#poses label{width:46px;height:46px;border:1px solid var(--ln);border-radius:10px;background:rgba(14,9,34,.8);padding:0;overflow:hidden;display:grid;place-items:center;color:var(--vio);font-size:22px}
-#poses button.on{border-color:#fff;box-shadow:0 0 12px var(--vio)}
-#poses img{width:100%;height:100%;object-fit:cover}
+#poses label{width:46px;height:46px;border:1px solid var(--ln);border-radius:10px;background:rgba(14,9,34,.8);padding:0;overflow:hidden;display:grid;place-items:center;color:var(--vio);font-size:22px}
 #log{position:absolute;right:3%;bottom:3%;width:min(340px,44%);max-height:34%;overflow:auto;display:flex;flex-direction:column;gap:6px;z-index:4;scrollbar-width:thin}
 .m{padding:8px 11px;border-radius:12px;background:rgba(25,15,45,.88);border:1px solid rgba(var(--accrgb),.35);font-size:12.5px;transition:border-color .6s}
 .m.yo{align-self:flex-end;background:rgba(60,18,95,.9);border-color:var(--acc1)}
@@ -344,10 +342,8 @@ const CH={dracona:{name:'Dracona',t:['#4ef2a0','#0e7a3e'],gl:'61,220,132',ui:['#
 let cur='dracona';
 const PAL={w1:'#35e1ff',w2:'#b86bff',bar0:'#8b32fa',bar1:'#36dfff',r0:'#d455ff',r1:'#35e1ff',r2:'#8547dc'};
 function setImg(u){const im=$('#avimg');im.style.opacity=0;setTimeout(()=>{im.src=u;im.style.opacity=''},160);$('#av').style.setProperty('--img','url("'+u+'")')}
-function mark(){document.querySelectorAll('#poses button').forEach((x,i)=>x.classList.toggle('on',i===CH[cur].sel))}
-function render(){const c=CH[cur];document.querySelectorAll('#poses button').forEach(x=>x.remove());
- c.p.forEach((u,i)=>{const b=document.createElement('button');b.type='button';b.innerHTML='<img alt="" src="'+u+'">';b.onclick=()=>{c.sel=i;setImg(u);mark()};$('#poses').insertBefore(b,$('#load'))});
- const has=c.p.length>0;$('#av').classList.toggle('has',has);app.classList.toggle('has',has);if(has)setImg(c.p[c.sel]);mark();
+function render(){const c=CH[cur];
+ const has=c.p.length>0;$('#av').classList.toggle('has',has);app.classList.toggle('has',has);if(has)setImg(c.p[c.sel]);
  $('#et').textContent=c.name;$('#mav').textContent=c.name;app.style.setProperty('--t1',c.t[0]);app.style.setProperty('--t2',c.t[1]);app.style.setProperty('--gl',c.gl);
  if(c.ui){app.style.setProperty('--acc1',c.ui[0]);app.style.setProperty('--acc2',c.ui[1]);app.style.setProperty('--accrgb',c.ui[2])}
  if(c.pal){PAL.w1=c.pal[0];PAL.w2=c.pal[1];PAL.bar0=c.pal[2];PAL.bar1=c.pal[3];PAL.r0=c.pal[4];PAL.r1=c.pal[1];PAL.r2=c.pal[2];pal=c.pm}
@@ -356,7 +352,15 @@ function render(){const c=CH[cur];document.querySelectorAll('#poses button').for
  if(c.exp){EXPER=c.exp[0];SHARP=c.exp[1];PULSE=c.exp[2];app.style.setProperty('--breathe',c.exp[0]+'s')}
  coreChar=cur;app.dataset.char=cur}
 function reveal(){const v=$('#av');v.classList.remove('rev');void v.offsetWidth;v.classList.add('rev')}
-function addPoses(files){const c=CH[cur],first=!c.p.length;[...files].filter(f=>f.type.startsWith('image/')).forEach(f=>c.p.push(URL.createObjectURL(f)));render();if(first&&c.p.length){setMode('avatar')}}
+function addPoses(files){
+ const images=[...files].filter(file=>file.type.startsWith('image/'));
+ if(!images.length)return;
+ const c=CH[cur];
+ c.sel=c.p.length;
+ c.p.push(...images.map(file=>URL.createObjectURL(file)));
+ render();
+ setMode('avatar');
+}
 document.querySelectorAll('#chars button').forEach(b=>b.onclick=()=>{cur=b.dataset.c;document.querySelectorAll('#chars button').forEach(x=>x.setAttribute('aria-pressed',x===b));render();reveal()});
 // Atuendo aleatorio al arrancar: cada personaje empieza en una pose distinta
 Object.values(CH).forEach(c=>{if(c.p&&c.p.length>1)c.sel=Math.floor(Math.random()*c.p.length)});
