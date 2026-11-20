@@ -24,7 +24,7 @@ PAGE = r"""
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Luna AI</title><meta name="luna-build" content="escenas-20261120">
+<title>Luna AI</title><meta name="luna-build" content="circuitos-20261120">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&display=swap">
 <style>
 :root{color-scheme:dark;--bg:#07040f;--ln:rgba(var(--accrgb),.4);--vio:#a66bff;--cy:#35e1ff;--tx:#efe7ff;--mu:#a597c4;--acc1:#8a33f0;--acc2:#4a1a96;--accrgb:176,110,255;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -170,6 +170,67 @@ header{box-shadow:0 1px 14px rgba(var(--accrgb),.1)}
 #log .scene-event{display:flex;align-items:center;gap:5px}#log .scene-face{width:24px;height:24px;object-fit:contain;flex:0 0 24px}#log .scene-description{min-width:0}
 .message-edit{display:block;margin:4px 0 0 auto;padding:2px 7px;font-size:11px;opacity:.8}.turn-editor{display:grid;gap:7px;margin:8px 0}.turn-editor textarea{width:100%;min-height:90px;resize:vertical;background:#171024;color:inherit;border:1px solid #796093;border-radius:8px;padding:8px;font:inherit}.turn-editor small{line-height:1.3}.turn-editor button,.edit-download{font-size:12px;padding:5px 9px}.turn-editor .edit-controls{display:flex;gap:8px}
 #scene-controls{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:center;max-width:900px;margin:0 auto;font-size:12px}#scene-controls label{display:flex;gap:5px;align-items:center}#scene-controls button,#scene-controls select,#scene-controls input[type=time]{background:#1c1230;color:inherit;border:1px solid #64447d;border-radius:7px;padding:4px}#scene-note{flex-basis:100%;text-align:center;font-size:11px;color:#c8b8db}#scene-controls input[type=checkbox]{accent-color:#a362ef}#eq{height:24px}
+
+header{position:relative}.tog{position:absolute;left:50%;transform:translateX(-50%)}
+/* Celestial studio — visual refresh; conversation and provider contracts unchanged. */
+:root{--bg:#090711;--tx:#eeeaf5;--mu:#a39bb4;--surface:rgba(20,16,32,.84);--edge:rgba(211,197,240,.14)}
+#app{grid-template-rows:72px 1fr auto}
+header{padding:0 32px;background:rgba(13,10,23,.88);border-bottom:1px solid var(--edge)!important;box-shadow:none!important;backdrop-filter:blur(24px)}
+.brand{font-size:18px;letter-spacing:-.04em!important;text-shadow:none!important;display:flex;gap:10px;align-items:center}
+.brand:before{content:'✧';font-size:27px;color:#dac29a;font-weight:300}.brand:after{display:none!important}
+.brand small{font-size:9px;letter-spacing:.18em;color:var(--mu);font-weight:400;border-left:1px solid var(--edge);padding-left:12px;margin-left:6px}
+.tog{padding:4px;border-color:var(--edge);background:#13101f;gap:4px}
+.tog button{padding:9px 22px;font-size:12px}.tog button[aria-pressed=true],#app[data-mode=avatar] .tog button[aria-pressed=true]{box-shadow:0 2px 12px #0004;background:linear-gradient(125deg,rgba(var(--accrgb),.38),rgba(var(--accrgb),.18));border:1px solid rgba(var(--accrgb),.4)}
+.hr{gap:18px}#pal{background:#191323;border-color:var(--edge);width:36px;height:36px}.pill{font-size:11px}.pill i{width:6px;height:6px;box-shadow:0 0 8px #39f77c66}
+#chars{top:20px;padding:5px;gap:5px;border-color:var(--edge)!important;background:rgba(19,15,30,.88);backdrop-filter:blur(18px);border-radius:28px}
+#chars button{padding:8px 19px;font-size:12px;border:1px solid transparent}
+#chars button[aria-pressed=true],#app[data-char=dracona] #chars button[aria-pressed=true]{background:rgba(var(--accrgb),.16);border:1px solid rgba(var(--accrgb),.4);box-shadow:none;color:#f7f0e5}
+.pn{width:clamp(180px,18vw,264px);height:15%;min-height:100px;padding:15px 17px;border:1px solid var(--edge)!important;border-radius:18px;background:linear-gradient(135deg,rgba(31,25,43,.66),rgba(13,11,24,.48));box-shadow:0 10px 40px #0002;backdrop-filter:blur(16px)}
+.pn:before,.pn:after{display:none!important}.pn span{font-size:10px;letter-spacing:.06em;display:flex;gap:7px;align-items:center}.pn span:before{content:'';width:4px;height:4px;border-radius:50%;background:rgba(var(--accrgb),.8)}
+.pn canvas{height:calc(100% - 20px);margin-top:5px;opacity:.7}.pn.l{left:32px}.pn.r{right:32px}.pn.a{top:12%}.pn.b{top:31%}#app[data-mode=avatar] .pn{opacity:.68}
+#av{bottom:12%;height:77%}#holo{bottom:3%;font-size:10px;padding:8px 14px;background:rgba(18,14,28,.65);border:1px solid var(--edge);border-radius:30px;backdrop-filter:blur(12px)}#holo input{width:96px;height:3px}
+#poses{left:32px;bottom:4%;max-width:calc(100% - 64px)}#poses label{width:42px;height:42px;border-radius:14px;background:var(--surface);border-color:var(--edge);font-size:20px}
+#wardrobe{left:84px;bottom:calc(4% + 4px)}
+#wardrobe summary{list-style:none;display:flex;align-items:center;gap:10px;border-radius:14px;padding:11px 16px;background:var(--surface);border-color:var(--edge);font-size:12px;box-shadow:0 6px 20px #0002}
+#wardrobe summary::-webkit-details-marker{display:none}#wardrobe summary:before{content:'✧';font-size:17px;color:#d4bce9}#wardrobe summary:after{content:'⌃';margin-left:14px;color:var(--mu)}#wardrobe[open] summary:after{content:'⌄'}
+#wardrobe .preview-panel{width:320px;max-width:calc(100vw - 40px);padding:21px;gap:16px;left:-52px;bottom:calc(100% + 14px);background:rgba(20,15,32,.97);border:1px solid var(--edge);border-radius:22px;box-shadow:0 20px 70px #0008;backdrop-filter:blur(24px)}
+.panel-heading{display:grid;gap:4px;margin-bottom:3px}.panel-heading b{font-size:16px;font-weight:600;letter-spacing:-.02em}.panel-heading small{font-size:11px;color:var(--mu)}
+#wardrobe .preview-panel label{font-size:11px;gap:8px;color:#beb5cf}#wardrobe select{padding:11px 12px;background:#21192f;border-color:var(--edge);border-radius:12px;font-size:12px;color:var(--tx)}
+#wardrobe button{background:rgba(var(--accrgb),.16);border-color:rgba(var(--accrgb),.3);border-radius:12px;font-size:12px;padding:11px}#wardrobe-status{font-size:10px;line-height:1.6;border-top:1px solid var(--edge);padding-top:12px}input[type=checkbox]{accent-color:#b08bcc;width:15px;height:15px;vertical-align:middle}
+#log{right:32px;bottom:4%;width:clamp(310px,26vw,420px);max-height:44%;gap:12px;padding:16px 10px 8px 16px;scrollbar-color:#75628455 transparent;scrollbar-width:thin;scroll-behavior:smooth;mask-image:linear-gradient(transparent,#000 14px);}
+.m{font-size:12px;line-height:1.75;padding:15px 18px;border:1px solid var(--edge);border-radius:20px 20px 20px 5px;background:rgba(24,18,38,.87);box-shadow:0 6px 24px #0002;overflow-wrap:anywhere}
+.m.yo{max-width:92%;border:1px solid rgba(var(--accrgb),.25);background:linear-gradient(130deg,rgba(var(--accrgb),.22),rgba(var(--accrgb),.1));border-radius:20px 20px 5px 20px}
+#log .scene-event{font-size:10px;line-height:1.6;margin:0 0 3px;padding:8px 10px;border-left:1px solid rgba(var(--accrgb),.45);background:rgba(160,130,190,.04);border-radius:0 12px 12px 0;color:#ada3bd;gap:8px}#log .scene-face{width:27px;height:27px;flex-basis:27px}
+.message-edit{background:transparent;border:0;border-radius:6px;color:var(--mu);font-size:10px;padding:1px 4px;opacity:.6}.message-edit:hover{color:var(--tx);opacity:1}.turn-editor button,.edit-download{border:1px solid var(--edge);border-radius:9px;background:#241a34;color:var(--tx)}
+footer{padding:0 32px 20px;position:relative;background:linear-gradient(transparent,rgba(9,7,17,.92));z-index:6}#eq{height:12px;max-width:900px;margin:auto;opacity:.42}
+.composer-top{max-width:900px;margin:8px auto 9px;display:flex;align-items:center;justify-content:space-between;position:relative}
+.composer-hint{font-size:10px;letter-spacing:.02em;color:#837990;display:flex;gap:8px;align-items:center}.composer-hint:before{content:'';width:4px;height:4px;background:#b99bd3;border-radius:50%}
+#scene-tools{position:relative}#scene-tools>summary{display:flex;gap:10px;align-items:center;list-style:none;color:#c6bbd5;font-size:11px;cursor:pointer;padding:7px 12px;border:1px solid var(--edge);border-radius:12px;background:rgba(27,21,39,.65)}#scene-tools>summary::-webkit-details-marker{display:none}#scene-tools>summary:after{content:'⌃';color:var(--mu)}#scene-tools[open]>summary{border-color:rgba(var(--accrgb),.45);background:#251c36}
+#scene-controls{position:absolute;right:0;bottom:calc(100% + 14px);width:350px;max-width:calc(100vw - 40px);padding:22px;display:grid;grid-template-columns:1fr 1fr;gap:16px 10px;text-align:left;background:rgba(22,16,34,.98);border:1px solid var(--edge);border-radius:22px;box-shadow:0 20px 70px #0009;backdrop-filter:blur(24px);font-size:11px;z-index:9}
+#scene-controls .panel-heading{grid-column:1/-1}#scene-controls label{gap:9px;color:#c6bbd5}#scene-controls .scene-mode-label{grid-column:1/-1;display:grid;gap:8px}#scene-controls button,#scene-controls select,#scene-controls input[type=time]{padding:11px 12px;background:#261c36;border:1px solid var(--edge);border-radius:12px;font:inherit;color:var(--tx);min-height:40px}#scene-controls select{width:100%}#scene-controls button:hover{background:#372749;border-color:rgba(var(--accrgb),.5)}#scene-controls #scene-start{background:rgba(var(--accrgb),.2);border-color:rgba(var(--accrgb),.3)}#scene-controls .scene-wake-label{display:grid;gap:7px}#scene-controls input[type=time]{width:100%;min-width:0}#scene-note{grid-column:1/-1;text-align:left;font-size:10px;line-height:1.7;color:var(--mu);border-top:1px solid var(--edge);padding-top:12px}
+#f{max-width:900px;margin:0 auto;gap:10px;padding:8px 9px;border:1px solid rgba(197,173,222,.24)!important;border-radius:22px;background:rgba(23,17,34,.94);box-shadow:0 12px 48px #0005;backdrop-filter:blur(24px)}#f:focus-within{border-color:rgba(var(--accrgb),.6)!important;box-shadow:0 0 0 3px rgba(var(--accrgb),.06),0 12px 48px #0005}#f input{font-size:13px;padding:11px 6px}#f input::placeholder{color:#877b99}#f input:focus{outline:none}#f button{width:44px;height:44px;border-radius:15px;display:grid;place-items:center;flex:none;background:#251b35;border:1px solid var(--edge)}#f button[type=submit]{background:linear-gradient(135deg,rgba(var(--accrgb),.6),rgba(var(--accrgb),.26));border-color:rgba(var(--accrgb),.45)}#f button svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+button,summary,select{transition:background .2s,border-color .2s,box-shadow .2s}button:disabled{cursor:default;opacity:.5}
+@media(min-width:1800px){#log{max-height:43%;width:410px}.m{font-size:13px}}
+@media(max-width:1100px){.pn{width:180px;height:14%;padding:12px}.pn.l{left:20px}.pn.r{right:20px}#log{right:16px;width:310px;max-height:40%}#wardrobe{left:72px}#poses{left:20px}#av{left:45%;max-width:65%}.brand small{display:none}}
+@media(max-width:760px){#app{grid-template-rows:60px 1fr auto}header{padding:0 16px}.brand{display:flex;font-size:14px}.brand:before{font-size:22px}.brand small{display:none}.tog button{padding:7px 10px;font-size:10px}.hr{gap:8px}.pill{display:none}#pal{width:30px;height:30px}#chars{top:14px}#chars button{padding:7px 13px;font-size:11px}#av{left:50%;height:68%;bottom:28%;max-width:96%}#log{right:12px;left:12px;bottom:13%;width:auto;max-height:29%;padding:15px 4px 0}.m{max-width:90%;font-size:11px;padding:10px 13px}#poses{bottom:2%;left:16px}#wardrobe{bottom:calc(2% + 4px);left:68px}#wardrobe .preview-panel{max-height:54vh;overflow-y:auto;left:-52px}#wardrobe summary{padding:10px 12px;font-size:11px}#holo{left:auto;right:16px;translate:0;bottom:3%;font-size:0;padding:12px}#holo input{width:60px}footer{padding:0 16px 14px}.composer-hint{font-size:9px}#scene-tools>summary{font-size:10px;padding:7px 10px}#scene-controls{max-height:65vh;overflow-y:auto}#f{border-radius:19px;padding:6px}#f input{font-size:12px}#f button{width:38px;height:40px;border-radius:13px}#eq{height:8px}}
+@media(prefers-reduced-motion:reduce){#log{scroll-behavior:auto}button,summary,select{transition:none}}
+
+
+/* Personality circuit scenery: decorative, beneath controls and portrait. */
+#circuit-scenery{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;opacity:.72}
+.circuit-set{opacity:0;transition:opacity 1s;--circuit:#b68ae7;--spark:#dcc4ff}
+#app[data-char=dracona] .circuit-dracona{opacity:1;--circuit:#c7a366;--spark:#f5d8a1}
+#app[data-char=rem] .circuit-rem{opacity:1;--circuit:#929fde;--spark:#cbdcfa}
+#app[data-char=luna] .circuit-luna{opacity:1;--circuit:#ab7ade;--spark:#e2b5ef}
+.circuit-traces{fill:none;stroke:var(--circuit);stroke-width:1;opacity:.25}
+.circuit-nodes{fill:var(--bg);stroke:var(--circuit);stroke-width:1.2;opacity:.52}
+.circuit-current{fill:none;stroke:var(--spark);stroke-width:1.6;stroke-dasharray:2 900;stroke-linecap:round;opacity:.5;animation:circuit-flow 24s linear infinite}
+.circuit-rem .circuit-current{animation-duration:32s}.circuit-luna .circuit-current{animation-duration:20s}
+@keyframes circuit-flow{from{stroke-dashoffset:902}to{stroke-dashoffset:-902}}
+#app[data-mode=core] #circuit-scenery{opacity:.42}
+@media(max-width:760px){#circuit-scenery{opacity:.5}.circuit-traces{stroke-width:1.2}}
+@media(prefers-reduced-motion:reduce){.circuit-current{animation:none;opacity:.25}.circuit-set{transition:none}}
+
 </style></head>
 <body>
 <div id="app" data-mode="core"><svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
@@ -183,11 +244,43 @@ header{box-shadow:0 1px 14px rgba(var(--accrgb),.1)}
  <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="tinted"/><feMergeNode in="softLines"/></feMerge>
 </filter></defs></svg>
 <header>
- <div class="brand">Luna AI</div>
+ <div class="brand">Luna AI<small>COMPAÑÍA CELESTIAL</small></div>
  <div class="tog" role="group" aria-label="Modo"><button data-m="core" aria-pressed="true">Núcleo</button><button data-m="avatar" id="mav" aria-pressed="false">Draconia</button></div>
  <div class="hr"><button id="pal" aria-label="Cambiar color del núcleo" title="Cambiar color del núcleo">◐</button><div class="pill" id="st" data-s="idle"><i></i><b style="font-weight:400" id="stt">Lista</b></div></div>
 </header>
 <main id="stage">
+ <svg id="circuit-scenery" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+ <defs>
+  <linearGradient id="circuit-fade" x1="0" y1="0" x2="0" y2="1"><stop stop-color="white" stop-opacity=".15"/><stop offset=".3" stop-color="white"/><stop offset=".8" stop-color="white" stop-opacity=".7"/><stop offset="1" stop-color="white" stop-opacity=".05"/></linearGradient>
+  <mask id="circuit-mask"><rect width="1440" height="900" fill="url(#circuit-fade)"/><ellipse cx="720" cy="455" rx="225" ry="340" fill="black"/></mask>
+ </defs>
+ <g mask="url(#circuit-mask)">
+  <g class="circuit-set circuit-dracona">
+   <g class="circuit-traces">
+    <path d="M40 110h210l55 55v170l66 66v190l70 70v170M68 140h164l45 45v170l66 66v200l70 70v140M140 0v70l45 45M0 280h114l80 80v145l55 55v270M0 310h100l66 66v140l55 55v259M46 900V680l48-48V476M480 0v140l-55 55v180M510 0v155l-55 55v150M0 790h125l100-100h93M0 820h142l100-100h76"/>
+    <path d="M1400 110h-210l-55 55v170l-66 66v190l-70 70v170M1372 140h-164l-45 45v170l-66 66v200l-70 70v140M1300 0v70l-45 45M1440 280h-114l-80 80v145l-55 55v270M1440 310h-100l-66 66v140l-55 55v259M1394 900V680l-48-48V476M960 0v140l55 55v180M930 0v155l55 55v150M1440 790h-125l-100-100h-93M1440 820h-142l-100-100h-76"/>
+   </g>
+   <g class="circuit-nodes"><path d="m425 369 6 6-6 6-6-6ZM94 468l8 8-8 8-8-8ZM318 683l7 7-7 7-7-7ZM1015 369l6 6-6 6-6-6ZM1346 468l8 8-8 8-8-8ZM1122 683l7 7-7 7-7-7Z"/><circle cx="249" cy="830" r="4"/><circle cx="1191" cy="830" r="4"/></g>
+   <path class="circuit-current" d="M40 110h210l55 55v170l66 66v190l70 70v170M1400 110h-210l-55 55v170l-66 66v190l-70 70v170"/>
+  </g>
+  <g class="circuit-set circuit-rem">
+   <g class="circuit-traces">
+    <path d="M-20 160h220q32 0 32 32v130q0 24 24 24h68q24 0 24 24v182q0 28 28 28h50M-20 188h197q28 0 28 28v130q0 28 28 28h66q22 0 22 22v184q0 28 28 28h60M70 0v70q0 25 25 25h42q25 0 25 25v46M0 430h93q30 0 30 30v178q0 28 28 28h93q24 0 24 24v210M0 460h66q29 0 29 29v173q0 28 28 28h92q26 0 26 26v184M450 0v170q0 28-28 28h-24q-28 0-28 28v54M0 810h142q30 0 30-30v-23q0-30 30-30h100"/>
+    <path d="M1460 160h-220q-32 0-32 32v130q0 24-24 24h-68q-24 0-24 24v182q0 28-28 28h-50M1460 188h-197q-28 0-28 28v130q0 28-28 28h-66q-22 0-22 22v184q0 28-28 28h-60M1370 0v70q0 25-25 25h-42q-25 0-25 25v46M1440 430h-93q-30 0-30 30v178q0 28-28 28h-93q-24 0-24 24v210M1440 460h-66q-29 0-29 29v173q0 28-28 28h-92q-26 0-26 26v184M990 0v170q0 28 28 28h24q28 0 28 28v54M1440 810h-142q-30 0-30-30v-23q0-30-30-30h-100"/>
+   </g>
+   <g class="circuit-nodes"><circle cx="426" cy="580" r="6"/><circle cx="370" cy="280" r="6"/><circle cx="302" cy="727" r="6"/><circle cx="1014" cy="580" r="6"/><circle cx="1070" cy="280" r="6"/><circle cx="1138" cy="727" r="6"/><path d="M390 405a18 18 0 1 0 8 32 16 16 0 0 1-8-32ZM1050 405a18 18 0 1 1-8 32 16 16 0 0 0 8-32Z"/></g>
+   <path class="circuit-current" d="M-20 160h220q32 0 32 32v130q0 24 24 24h68q24 0 24 24v182q0 28 28 28h50M1460 160h-220q-32 0-32 32v130q0 24-24 24h-68q-24 0-24 24v182q0 28-28 28h-50"/>
+  </g>
+  <g class="circuit-set circuit-luna">
+   <g class="circuit-traces">
+    <path d="M0 100h160l80 80v100l70 70v140l80 80v160M0 128h148l64 64v100l70 70v140l80 80v148M110 0v65l72 72M0 390h92l48 48v130l64 64v268M0 420h80l32 32v130l64 64v254M450 0v116l-62 62v100l-38 38M0 800h106l64-64h154M1440 100h-160l-80 80v100l-70 70v140l-80 80v160M1440 128h-148l-64 64v100l-70 70v140l-80 80v148M1330 0v65l-72 72M1440 390h-92l-48 48v130l-64 64v268M1440 420h-80l-32 32v130l-64 64v254M990 0v116l62 62v100l38 38M1440 800h-106l-64-64h-154"/>
+    <circle cx="365" cy="420" r="43" stroke-dasharray="100 32 10 128"/><circle cx="1075" cy="420" r="43" stroke-dasharray="100 32 10 128"/>
+   </g>
+   <g class="circuit-nodes"><path d="m390 720 4 10 10 4-10 4-4 10-4-10-10-4 10-4ZM1050 720l4 10 10 4-10 4-4 10-4-10-10-4 10-4ZM350 305l4 9 9 4-9 4-4 9-4-9-9-4 9-4ZM1090 305l4 9 9 4-9 4-4 9-4-9-9-4 9-4ZM370 401a21 21 0 1 0 4 39 19 19 0 0 1-4-39ZM1070 401a21 21 0 1 1-4 39 19 19 0 0 0 4-39Z"/><circle cx="324" cy="736" r="4"/><circle cx="1116" cy="736" r="4"/></g>
+   <path class="circuit-current" d="M0 100h160l80 80v100l70 70v140l80 80v160M1440 100h-160l-80 80v100l-70 70v140l-80 80v160"/>
+  </g>
+ </g></svg>
+
  <canvas id="core"></canvas><canvas id="core2"></canvas>
  <div class="pn l a"><span>Entrada de voz</span><canvas class="pc" data-k="w1"></canvas></div>
  <div class="pn l b"><span>Voz de Luna</span><canvas class="pc" data-k="w2"></canvas></div>
@@ -200,7 +293,7 @@ header{box-shadow:0 1px 14px rgba(var(--accrgb),.1)}
  <div id="poses"><label id="load" tabindex="0" title="Cargar imágenes">+<input type="file" id="file" accept="image/*" multiple hidden></label></div>
  <details id="wardrobe">
   <summary>Vestuario y gestos</summary>
-  <div class="preview-panel">
+  <div class="preview-panel"><div class="panel-heading"><b>Tu estilo, su esencia</b><small>Vestuario y movimiento</small></div>
    <label>Atuendo<select id="outfitChoice"></select></label>
    <label>Animación<select id="gestureChoice"></select></label>
    <button type="button" id="playGesture">Reproducir gesto</button>
@@ -213,13 +306,19 @@ header{box-shadow:0 1px 14px rgba(var(--accrgb),.1)}
 </main>
 <footer>
  <canvas class="pc" id="eq" data-k="eq"></canvas>
- <div id="scene-controls"><label>Escena <select id="scene-mode" aria-label="Modo de escena"><option value="chat">Conversar</option><option value="solo">Narrar a solas</option><option value="sleep">Descansando</option></select></label><button type="button" id="scene-start">Ella empieza</button><button type="button" id="scene-sleep">Descansar</button><label><input type="checkbox" id="scene-welcome"> Saludo al abrir</label><label>Despertar <input type="time" id="scene-wake" value="07:00" aria-label="Hora de despertar"></label><span id="scene-note" role="status"></span></div>
- <form id="f"><button type="button" id="mic" aria-pressed="false" aria-label="Micrófono">🎙</button><input id="q" placeholder="Escríbele a Luna…" autocomplete="off"><button type="submit" aria-label="Enviar">➤</button></form>
+ <div class="composer-top"><span class="composer-hint" id="scene-indicator" role="status">Conversación compartida</span><details id="scene-tools"><summary aria-label="Opciones de escena">✧ &nbsp; Opciones de escena</summary>
+ <div id="scene-controls"><div class="panel-heading"><b>A tu ritmo</b><small>Elige cómo continúa la escena</small></div><label class="scene-mode-label">Modo de escena<select id="scene-mode" aria-label="Modo de escena"><option value="chat">Conversar</option><option value="solo">Narrar a solas</option><option value="sleep">Descansando</option></select></label><button type="button" id="scene-start">Ella empieza</button><button type="button" id="scene-sleep">Descansar</button><label><input type="checkbox" id="scene-welcome"> Saludo al abrir</label><label class="scene-wake-label">Despertar<input type="time" id="scene-wake" value="07:00" aria-label="Hora de despertar"></label><span id="scene-note" role="status"></span></div></details></div>
+ <form id="f"><button type="button" id="mic" aria-pressed="false" aria-label="Micrófono"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3m-4 0h8"/></svg></button><input id="q" placeholder="Escríbele a Luna…" autocomplete="off"><button type="submit" aria-label="Enviar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 14-8-4 16-3-6-7-2Zm7 2 7-10"/></svg></button></form>
 </footer>
 </div>
 <script>
 const $=s=>document.querySelector(s),app=$('#app'),cv=$('#core'),cv2=$('#core2'),g2=cv2.getContext('2d');let g=cv.getContext('2d');
 const BACKEND='/api/chat';
+// Native details retain keyboard activation; Escape and outside taps dismiss panels.
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('#scene-tools[open],#wardrobe[open]').forEach(p=>p.open=false)});
+document.addEventListener('click',e=>document.querySelectorAll('#scene-tools[open],#wardrobe[open]').forEach(p=>{if(!p.contains(e.target))p.open=false}));
+document.querySelectorAll('#scene-tools,#wardrobe').forEach(p=>p.addEventListener('toggle',()=>{if(p.open){document.querySelectorAll('#scene-tools,#wardrobe').forEach(other=>{if(other!==p)other.open=false})}}));
+
 let W=0,H=0,D=1,state='idle',level=0,mic=null,last=0,dt=.016,mode='core',mf=0,modeT=0;
 const calm=matchMedia('(prefers-reduced-motion: reduce)').matches;
 function dragonPts(n){const P=[];for(let i=0;i<n;i++){const u=i/(n-1),ang=u*10.5,r=.9*(1-.5*u*u);P.push([Math.sin(ang)*r,(u-.5)*1.7,Math.cos(ang)*r*.6])}return P}
@@ -631,7 +730,7 @@ const sceneControlKey='luna.scenecontrol.v1';
 function readSceneControls(){try{const v=JSON.parse(localStorage.getItem(sceneControlKey)||'{}');return v&&typeof v==='object'&&!Array.isArray(v)?v:{};}catch{return {};}}
 function sceneSettings(character=cur){const r=readSceneControls()[character]||{};return {mode:['chat','solo','sleep'].includes(r.mode)?r.mode:'chat',welcome:r.welcome!==false,wakeTime:/^\d{2}:\d{2}$/.test(r.wakeTime||'')?r.wakeTime:'07:00',sleptAt:Number(r.sleptAt)||0,wakeAt:Number(r.wakeAt)||0,sharedSleep:r.sharedSleep===true,lastGreeting:Number(r.lastGreeting)||0,lastActive:Number(r.lastActive)||0,lastAttempt:Number(r.lastAttempt)||0};}
 function saveSceneSettings(character,patch){const all=readSceneControls();all[character]={...sceneSettings(character),...patch};localStorage.setItem(sceneControlKey,JSON.stringify(all));if(character===cur)syncSceneControls();}
-function syncSceneControls(){const r=sceneSettings();$('#scene-mode').value=r.mode;$('#scene-welcome').checked=r.welcome;$('#scene-wake').value=r.wakeTime;$('#scene-note').textContent=r.mode==='solo'?'Narración a solas: se guarda tu texto sin respuesta. Usa /juntos o Ella empieza para retomar.':r.mode==='sleep'?'Descansando: la escena de despertar podrá aparecer al volver a abrir después de la hora elegida.':'Conversación compartida. /solo · /juntos · /iniciativa · /dormir';}
+function syncSceneControls(){const r=sceneSettings();$('#scene-indicator').textContent=r.mode==='solo'?'Narrando a solas · sin respuesta':r.mode==='sleep'?'Descansando · escena en pausa':'Conversación compartida';$('#scene-mode').value=r.mode;$('#scene-welcome').checked=r.welcome;$('#scene-wake').value=r.wakeTime;$('#scene-note').textContent=r.mode==='solo'?'Narración a solas: se guarda tu texto sin respuesta. Usa /juntos o Ella empieza para retomar.':r.mode==='sleep'?'Descansando: la escena de despertar podrá aparecer al volver a abrir después de la hora elegida.':'Conversación compartida. /solo · /juntos · /iniciativa · /dormir';}
 function nextSceneMorning(now,time){const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'America/Santo_Domingo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(now)).map(p=>[p.type,p.value]));const [hh,mm]=time.split(':').map(Number);let wake=Date.UTC(+parts.year,+parts.month-1,+parts.day,hh+4,mm);if(wake<=now)wake+=86400000;return Math.max(wake,now+4*3600000);}
 function markSceneSleep(character,text='',now=Date.now()){const r=sceneSettings(character);saveSceneSettings(character,{mode:'sleep',sleptAt:now,wakeAt:nextSceneMorning(now,r.wakeTime),sharedSleep:/\b(nos (?:quedamos|vamos|acostamos|dormimos)|ambos|los dos|dormimos juntos|misma cama|a tu lado|a mi lado|volvemos a quedarnos)\b/i.test(text),lastActive:now});cancelFollowup(character);}
 function sceneCommand(q){const t=q.trim();if(/^\/?(?:solo|retomo el rol yo solo|retomo el rol a solas|sigo el rol yo solo)$/i.test(t.replace(/^\*+|\*+$/g,'')))return {mode:'solo',text:''};const m=t.match(/^\/(solo|juntos|iniciativa|dormir)(?:\s+([\s\S]+))?$/i);if(m)return {mode:m[1].toLowerCase()==='juntos'?'chat':m[1].toLowerCase(),text:m[2]||''};if(/^\*?(?:ella toma la iniciativa(?: del rol)?|que ella empiece el rol)\*?$/i.test(t))return {mode:'iniciativa',text:''};return null;}
@@ -1562,7 +1661,7 @@ def _dialogue_response(raw, character):
 
 @app.get("/api/version")
 def version():
-    return jsonify(build="escenas-20261120")
+    return jsonify(build="circuitos-20261120")
 
 def _scene_text(value):
     return str(value or "").casefold().translate(str.maketrans("áéíóúüñ", "aeiouun"))
@@ -1828,7 +1927,7 @@ def chat():
             response.update(_dialogue_response(response["reply"], character))
             response = _ensure_scene_opening(provider, response, instructions, message, history, character, max(0.0, 25.0 - (time.monotonic() - turn_started)))
             response["preferred_brain"] = enabled[0][0]
-            response["build"] = "escenas-20261120"
+            response["build"] = "circuitos-20261120"
             return jsonify(response)
         except HTTPError as error:
             app.logger.warning("Luna proveedor=%s HTTP=%s", name, error.code)
