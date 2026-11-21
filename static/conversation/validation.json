@@ -1,0 +1,617 @@
+{
+  "body_static_per_clip": true,
+  "assets": [
+    {
+      "file": "camisa-idle.webp",
+      "frames": 1,
+      "duration": 1,
+      "outfit": "dracona-camisa-anudada-v5.png"
+    },
+    {
+      "file": "camisa-listen.webp",
+      "frames": 5,
+      "duration": 8640,
+      "outfit": "dracona-camisa-anudada-v5.png"
+    },
+    {
+      "file": "camisa-proud.webp",
+      "frames": 11,
+      "duration": 7350,
+      "outfit": "dracona-camisa-anudada-v5.png"
+    },
+    {
+      "file": "camisa-angry.webp",
+      "frames": 14,
+      "duration": 9600,
+      "outfit": "dracona-camisa-anudada-v5.png"
+    },
+    {
+      "file": "camisa-shy.webp",
+      "frames": 13,
+      "duration": 8950,
+      "outfit": "dracona-camisa-anudada-v5.png"
+    },
+    {
+      "file": "camisa-quiet.webp",
+      "frames": 6,
+      "duration": 5330,
+      "outfit": "dracona-camisa-anudada-v5.png"
+    },
+    {
+      "file": "toalla-idle.webp",
+      "frames": 1,
+      "duration": 1,
+      "outfit": "dracona-toalla-v17.png"
+    },
+    {
+      "file": "toalla-listen.webp",
+      "frames": 5,
+      "duration": 8640,
+      "outfit": "dracona-toalla-v17.png"
+    },
+    {
+      "file": "toalla-proud.webp",
+      "frames": 11,
+      "duration": 7350,
+      "outfit": "dracona-toalla-v17.png"
+    },
+    {
+      "file": "toalla-angry.webp",
+      "frames": 14,
+      "duration": 9600,
+      "outfit": "dracona-toalla-v17.png"
+    },
+    {
+      "file": "toalla-shy.webp",
+      "frames": 13,
+      "duration": 8950,
+      "outfit": "dracona-toalla-v17.png"
+    },
+    {
+      "file": "toalla-quiet.webp",
+      "frames": 6,
+      "duration": 5330,
+      "outfit": "dracona-toalla-v17.png"
+    },
+    {
+      "file": "sabana-idle.webp",
+      "frames": 1,
+      "duration": 1,
+      "outfit": "dracona-sabana-v17.png"
+    },
+    {
+      "file": "sabana-listen.webp",
+      "frames": 5,
+      "duration": 8640,
+      "outfit": "dracona-sabana-v17.png"
+    },
+    {
+      "file": "sabana-proud.webp",
+      "frames": 11,
+      "duration": 7350,
+      "outfit": "dracona-sabana-v17.png"
+    },
+    {
+      "file": "sabana-angry.webp",
+      "frames": 14,
+      "duration": 9600,
+      "outfit": "dracona-sabana-v17.png"
+    },
+    {
+      "file": "sabana-shy.webp",
+      "frames": 13,
+      "duration": 8950,
+      "outfit": "dracona-sabana-v17.png"
+    },
+    {
+      "file": "sabana-quiet.webp",
+      "frames": 6,
+      "duration": 5330,
+      "outfit": "dracona-sabana-v17.png"
+    },
+    {
+      "file": "almohada-idle.webp",
+      "frames": 1,
+      "duration": 1,
+      "outfit": "dracona-almohada-v17.png"
+    },
+    {
+      "file": "almohada-listen.webp",
+      "frames": 5,
+      "duration": 8640,
+      "outfit": "dracona-almohada-v17.png"
+    },
+    {
+      "file": "almohada-proud.webp",
+      "frames": 11,
+      "duration": 7350,
+      "outfit": "dracona-almohada-v17.png"
+    },
+    {
+      "file": "almohada-angry.webp",
+      "frames": 14,
+      "duration": 9600,
+      "outfit": "dracona-almohada-v17.png"
+    },
+    {
+      "file": "almohada-shy.webp",
+      "frames": 13,
+      "duration": 8950,
+      "outfit": "dracona-almohada-v17.png"
+    },
+    {
+      "file": "almohada-quiet.webp",
+      "frames": 6,
+      "duration": 5330,
+      "outfit": "dracona-almohada-v17.png"
+    },
+    {
+      "file": "corset-marfil-idle.webp",
+      "frames": 1,
+      "duration": 1,
+      "outfit": "dracona-corset-marfil-v5-joyas-v19.png"
+    },
+    {
+      "file": "corset-marfil-listen.webp",
+      "frames": 5,
+      "duration": 8640,
+      "outfit": "dracona-corset-marfil-v5-joyas-v19.png"
+    },
+    {
+      "file": "corset-marfil-proud.webp",
+      "frames": 11,
+      "duration": 7350,
+      "outfit": "dracona-corset-marfil-v5-joyas-v19.png"
+    },
+    {
+      "file": "corset-marfil-angry.webp",
+      "frames": 14,
+      "duration": 9600,
+      "outfit": "dracona-corset-marfil-v5-joyas-v19.png"
+    },
+    {
+      "file": "corset-marfil-shy.webp",
+      "frames": 13,
+      "duration": 8950,
+      "outfit": "dracona-corset-marfil-v5-joyas-v19.png"
+    },
+    {
+      "file": "corset-marfil-quiet.webp",
+      "frames": 6,
+      "duration": 5330,
+      "outfit": "dracona-corset-marfil-v5-joyas-v19.png"
+    },
+    {
+      "file": "cafe-casual-idle.webp",
+      "frames": 1,
+      "duration": 1,
+      "outfit": "dracona-cafe-casual-joyas-v19.png"
+    },
+    {
+      "file": "cafe-casual-listen.webp",
+      "frames": 5,
+      "duration": 8640,
+      "outfit": "dracona-cafe-casual-joyas-v19.png"
+    },
+    {
+      "file": "cafe-casual-proud.webp",
+      "frames": 11,
+      "duration": 7350,
+      "outfit": "dracona-cafe-casual-joyas-v19.png"
+    },
+    {
+      "file": "cafe-casual-angry.webp",
+      "frames": 14,
+      "duration": 9600,
+      "outfit": "dracona-cafe-casual-joyas-v19.png"
+    },
+    {
+      "file": "cafe-casual-shy.webp",
+      "frames": 13,
+      "duration": 8950,
+      "outfit": "dracona-cafe-casual-joyas-v19.png"
+    },
+    {
+      "file": "cafe-casual-quiet.webp",
+      "frames": 6,
+      "duration": 5330,
+      "outfit": "dracona-cafe-casual-joyas-v19.png"
+    },
+    {
+      "file": "biker-v6-idle.webp",
+      "frames": 1,
+      "duration": 1,
+      "outfit": "dracona-biker-v6-joyas-v19.png"
+    },
+    {
+      "file": "biker-v6-listen.webp",
+      "frames": 5,
+      "duration": 8640,
+      "outfit": "dracona-biker-v6-joyas-v19.png"
+    },
+    {
+      "file": "biker-v6-proud.webp",
+      "frames": 11,
+      "duration": 7350,
+      "outfit": "dracona-biker-v6-joyas-v19.png"
+    },
+    {
+      "file": "biker-v6-angry.webp",
+      "frames": 14,
+      "duration": 9600,
+      "outfit": "dracona-biker-v6-joyas-v19.png"
+    },
+    {
+      "file": "biker-v6-shy.webp",
+      "frames": 13,
+      "duration": 8950,
+      "outfit": "dracona-biker-v6-joyas-v19.png"
+    },
+    {
+      "file": "biker-v6-quiet.webp",
+      "frames": 6,
+      "duration": 5330,
+      "outfit": "dracona-biker-v6-joyas-v19.png"
+    },
+    {
+      "file": "bolero-noche-v6-idle.webp",
+      "frames": 1,
+      "duration": 1,
+      "outfit": "dracona-bolero-noche-v6-joyas-v19.png"
+    },
+    {
+      "file": "bolero-noche-v6-listen.webp",
+      "frames": 5,
+      "duration": 8640,
+      "outfit": "dracona-bolero-noche-v6-joyas-v19.png"
+    },
+    {
+      "file": "bolero-noche-v6-proud.webp",
+      "frames": 11,
+      "duration": 7350,
+      "outfit": "dracona-bolero-noche-v6-joyas-v19.png"
+    },
+    {
+      "file": "bolero-noche-v6-angry.webp",
+      "frames": 14,
+      "duration": 9600,
+      "outfit": "dracona-bolero-noche-v6-joyas-v19.png"
+    },
+    {
+      "file": "bolero-noche-v6-shy.webp",
+      "frames": 13,
+      "duration": 8950,
+      "outfit": "dracona-bolero-noche-v6-joyas-v19.png"
+    },
+    {
+      "file": "bolero-noche-v6-quiet.webp",
+      "frames": 6,
+      "duration": 5330,
+      "outfit": "dracona-bolero-noche-v6-joyas-v19.png"
+    },
+    {
+      "file": "camisa-hombros-v6-idle.webp",
+      "frames": 1,
+      "duration": 1,
+      "outfit": "dracona-camisa-hombros-v6-joyas-v19.png"
+    },
+    {
+      "file": "camisa-hombros-v6-listen.webp",
+      "frames": 5,
+      "duration": 8640,
+      "outfit": "dracona-camisa-hombros-v6-joyas-v19.png"
+    },
+    {
+      "file": "camisa-hombros-v6-proud.webp",
+      "frames": 11,
+      "duration": 7350,
+      "outfit": "dracona-camisa-hombros-v6-joyas-v19.png"
+    },
+    {
+      "file": "camisa-hombros-v6-angry.webp",
+      "frames": 14,
+      "duration": 9600,
+      "outfit": "dracona-camisa-hombros-v6-joyas-v19.png"
+    },
+    {
+      "file": "camisa-hombros-v6-shy.webp",
+      "frames": 13,
+      "duration": 8950,
+      "outfit": "dracona-camisa-hombros-v6-joyas-v19.png"
+    },
+    {
+      "file": "camisa-hombros-v6-quiet.webp",
+      "frames": 6,
+      "duration": 5330,
+      "outfit": "dracona-camisa-hombros-v6-joyas-v19.png"
+    },
+    {
+      "file": "corset-chaqueta-v6-idle.webp",
+      "frames": 1,
+      "duration": 1,
+      "outfit": "dracona-corset-chaqueta-v6-joyas-v19.png"
+    },
+    {
+      "file": "corset-chaqueta-v6-listen.webp",
+      "frames": 5,
+      "duration": 8640,
+      "outfit": "dracona-corset-chaqueta-v6-joyas-v19.png"
+    },
+    {
+      "file": "corset-chaqueta-v6-proud.webp",
+      "frames": 11,
+      "duration": 7350,
+      "outfit": "dracona-corset-chaqueta-v6-joyas-v19.png"
+    },
+    {
+      "file": "corset-chaqueta-v6-angry.webp",
+      "frames": 14,
+      "duration": 9600,
+      "outfit": "dracona-corset-chaqueta-v6-joyas-v19.png"
+    },
+    {
+      "file": "corset-chaqueta-v6-shy.webp",
+      "frames": 13,
+      "duration": 8950,
+      "outfit": "dracona-corset-chaqueta-v6-joyas-v19.png"
+    },
+    {
+      "file": "corset-chaqueta-v6-quiet.webp",
+      "frames": 6,
+      "duration": 5330,
+      "outfit": "dracona-corset-chaqueta-v6-joyas-v19.png"
+    },
+    {
+      "file": "gala-cristal-v6-idle.webp",
+      "frames": 1,
+      "duration": 1,
+      "outfit": "dracona-gala-cristal-v6-joyas-v19.png"
+    },
+    {
+      "file": "gala-cristal-v6-listen.webp",
+      "frames": 5,
+      "duration": 8640,
+      "outfit": "dracona-gala-cristal-v6-joyas-v19.png"
+    },
+    {
+      "file": "gala-cristal-v6-proud.webp",
+      "frames": 11,
+      "duration": 7350,
+      "outfit": "dracona-gala-cristal-v6-joyas-v19.png"
+    },
+    {
+      "file": "gala-cristal-v6-angry.webp",
+      "frames": 14,
+      "duration": 9600,
+      "outfit": "dracona-gala-cristal-v6-joyas-v19.png"
+    },
+    {
+      "file": "gala-cristal-v6-shy.webp",
+      "frames": 13,
+      "duration": 8950,
+      "outfit": "dracona-gala-cristal-v6-joyas-v19.png"
+    },
+    {
+      "file": "gala-cristal-v6-quiet.webp",
+      "frames": 6,
+      "duration": 5330,
+      "outfit": "dracona-gala-cristal-v6-joyas-v19.png"
+    },
+    {
+      "file": "gala-terciopelo-v5-idle.webp",
+      "frames": 1,
+      "duration": 1,
+      "outfit": "dracona-gala-terciopelo-v5-joyas-v19.png"
+    },
+    {
+      "file": "gala-terciopelo-v5-listen.webp",
+      "frames": 5,
+      "duration": 8640,
+      "outfit": "dracona-gala-terciopelo-v5-joyas-v19.png"
+    },
+    {
+      "file": "gala-terciopelo-v5-proud.webp",
+      "frames": 11,
+      "duration": 7350,
+      "outfit": "dracona-gala-terciopelo-v5-joyas-v19.png"
+    },
+    {
+      "file": "gala-terciopelo-v5-angry.webp",
+      "frames": 14,
+      "duration": 9600,
+      "outfit": "dracona-gala-terciopelo-v5-joyas-v19.png"
+    },
+    {
+      "file": "gala-terciopelo-v5-shy.webp",
+      "frames": 13,
+      "duration": 8950,
+      "outfit": "dracona-gala-terciopelo-v5-joyas-v19.png"
+    },
+    {
+      "file": "gala-terciopelo-v5-quiet.webp",
+      "frames": 6,
+      "duration": 5330,
+      "outfit": "dracona-gala-terciopelo-v5-joyas-v19.png"
+    },
+    {
+      "file": "halter-dorado-v5-idle.webp",
+      "frames": 1,
+      "duration": 1,
+      "outfit": "dracona-halter-dorado-v5-joyas-v19.png"
+    },
+    {
+      "file": "halter-dorado-v5-listen.webp",
+      "frames": 5,
+      "duration": 8640,
+      "outfit": "dracona-halter-dorado-v5-joyas-v19.png"
+    },
+    {
+      "file": "halter-dorado-v5-proud.webp",
+      "frames": 11,
+      "duration": 7350,
+      "outfit": "dracona-halter-dorado-v5-joyas-v19.png"
+    },
+    {
+      "file": "halter-dorado-v5-angry.webp",
+      "frames": 14,
+      "duration": 9600,
+      "outfit": "dracona-halter-dorado-v5-joyas-v19.png"
+    },
+    {
+      "file": "halter-dorado-v5-shy.webp",
+      "frames": 13,
+      "duration": 8950,
+      "outfit": "dracona-halter-dorado-v5-joyas-v19.png"
+    },
+    {
+      "file": "halter-dorado-v5-quiet.webp",
+      "frames": 6,
+      "duration": 5330,
+      "outfit": "dracona-halter-dorado-v5-joyas-v19.png"
+    },
+    {
+      "file": "denim-noche-v5-idle.webp",
+      "frames": 1,
+      "duration": 1,
+      "outfit": "dracona-denim-noche-v5-joyas-v19.png"
+    },
+    {
+      "file": "denim-noche-v5-listen.webp",
+      "frames": 5,
+      "duration": 8640,
+      "outfit": "dracona-denim-noche-v5-joyas-v19.png"
+    },
+    {
+      "file": "denim-noche-v5-proud.webp",
+      "frames": 11,
+      "duration": 7350,
+      "outfit": "dracona-denim-noche-v5-joyas-v19.png"
+    },
+    {
+      "file": "denim-noche-v5-angry.webp",
+      "frames": 14,
+      "duration": 9600,
+      "outfit": "dracona-denim-noche-v5-joyas-v19.png"
+    },
+    {
+      "file": "denim-noche-v5-shy.webp",
+      "frames": 13,
+      "duration": 8950,
+      "outfit": "dracona-denim-noche-v5-joyas-v19.png"
+    },
+    {
+      "file": "denim-noche-v5-quiet.webp",
+      "frames": 6,
+      "duration": 5330,
+      "outfit": "dracona-denim-noche-v5-joyas-v19.png"
+    },
+    {
+      "file": "cuero-esmeralda-v5-idle.webp",
+      "frames": 1,
+      "duration": 1,
+      "outfit": "dracona-cuero-esmeralda-v5-joyas-v19.png"
+    },
+    {
+      "file": "cuero-esmeralda-v5-listen.webp",
+      "frames": 5,
+      "duration": 8640,
+      "outfit": "dracona-cuero-esmeralda-v5-joyas-v19.png"
+    },
+    {
+      "file": "cuero-esmeralda-v5-proud.webp",
+      "frames": 11,
+      "duration": 7350,
+      "outfit": "dracona-cuero-esmeralda-v5-joyas-v19.png"
+    },
+    {
+      "file": "cuero-esmeralda-v5-angry.webp",
+      "frames": 14,
+      "duration": 9600,
+      "outfit": "dracona-cuero-esmeralda-v5-joyas-v19.png"
+    },
+    {
+      "file": "cuero-esmeralda-v5-shy.webp",
+      "frames": 13,
+      "duration": 8950,
+      "outfit": "dracona-cuero-esmeralda-v5-joyas-v19.png"
+    },
+    {
+      "file": "cuero-esmeralda-v5-quiet.webp",
+      "frames": 6,
+      "duration": 5330,
+      "outfit": "dracona-cuero-esmeralda-v5-joyas-v19.png"
+    },
+    {
+      "file": "kimono-moderno-v6-idle.webp",
+      "frames": 1,
+      "duration": 1,
+      "outfit": "dracona-kimono-moderno-v6-joyas-v19.png"
+    },
+    {
+      "file": "kimono-moderno-v6-listen.webp",
+      "frames": 5,
+      "duration": 8640,
+      "outfit": "dracona-kimono-moderno-v6-joyas-v19.png"
+    },
+    {
+      "file": "kimono-moderno-v6-proud.webp",
+      "frames": 11,
+      "duration": 7350,
+      "outfit": "dracona-kimono-moderno-v6-joyas-v19.png"
+    },
+    {
+      "file": "kimono-moderno-v6-angry.webp",
+      "frames": 14,
+      "duration": 9600,
+      "outfit": "dracona-kimono-moderno-v6-joyas-v19.png"
+    },
+    {
+      "file": "kimono-moderno-v6-shy.webp",
+      "frames": 13,
+      "duration": 8950,
+      "outfit": "dracona-kimono-moderno-v6-joyas-v19.png"
+    },
+    {
+      "file": "kimono-moderno-v6-quiet.webp",
+      "frames": 6,
+      "duration": 5330,
+      "outfit": "dracona-kimono-moderno-v6-joyas-v19.png"
+    },
+    {
+      "file": "desayuno-idle.webp",
+      "frames": 1,
+      "duration": 1,
+      "outfit": "dracona-desayuno-joyas-v19.png"
+    },
+    {
+      "file": "desayuno-listen.webp",
+      "frames": 5,
+      "duration": 8640,
+      "outfit": "dracona-desayuno-joyas-v19.png"
+    },
+    {
+      "file": "desayuno-proud.webp",
+      "frames": 11,
+      "duration": 7350,
+      "outfit": "dracona-desayuno-joyas-v19.png"
+    },
+    {
+      "file": "desayuno-angry.webp",
+      "frames": 14,
+      "duration": 9600,
+      "outfit": "dracona-desayuno-joyas-v19.png"
+    },
+    {
+      "file": "desayuno-shy.webp",
+      "frames": 13,
+      "duration": 8950,
+      "outfit": "dracona-desayuno-joyas-v19.png"
+    },
+    {
+      "file": "desayuno-quiet.webp",
+      "frames": 6,
+      "duration": 5330,
+      "outfit": "dracona-desayuno-joyas-v19.png"
+    }
+  ]
+}

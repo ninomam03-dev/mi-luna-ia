@@ -1,0 +1,818 @@
+{
+  "camisa-idle.webp": {
+    "scale": 1.01685,
+    "x": 0.00702,
+    "y": 0.00281,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "camisa-listen.webp": {
+    "scale": 1.01685,
+    "x": 0.00702,
+    "y": 0.00281,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "camisa-proud.webp": {
+    "scale": 1.01685,
+    "x": 0.00702,
+    "y": 0.00281,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "camisa-angry.webp": {
+    "scale": 1.01685,
+    "x": -0.08427,
+    "y": 0.00281,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "camisa-shy.webp": {
+    "scale": 1.01685,
+    "x": -0.08708,
+    "y": 0.00281,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "camisa-quiet.webp": {
+    "scale": 1.01685,
+    "x": -0.08567,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "toalla-idle.webp": {
+    "scale": 1.02309,
+    "x": -0.00808,
+    "y": 0.01155,
+    "ratio": 0.8893905191873589,
+    "bottom": 1,
+    "cut": 1
+  },
+  "toalla-listen.webp": {
+    "scale": 1.02309,
+    "x": -0.00808,
+    "y": 0.01155,
+    "ratio": 0.8893905191873589,
+    "bottom": 1,
+    "cut": 1
+  },
+  "toalla-proud.webp": {
+    "scale": 1.02309,
+    "x": -0.00808,
+    "y": 0.01155,
+    "ratio": 0.8893905191873589,
+    "bottom": 1,
+    "cut": 1
+  },
+  "toalla-angry.webp": {
+    "scale": 1.02546,
+    "x": -0.0081,
+    "y": 0.01157,
+    "ratio": 0.8893905191873589,
+    "bottom": 1,
+    "cut": 1
+  },
+  "toalla-shy.webp": {
+    "scale": 1.02309,
+    "x": -0.00808,
+    "y": 0.00924,
+    "ratio": 0.8893905191873589,
+    "bottom": 1,
+    "cut": 1
+  },
+  "toalla-quiet.webp": {
+    "scale": 1.02309,
+    "x": -0.00808,
+    "y": 0.00924,
+    "ratio": 0.8893905191873589,
+    "bottom": 1,
+    "cut": 1
+  },
+  "sabana-idle.webp": {
+    "scale": 1.01174,
+    "x": -0.04577,
+    "y": 0.00704,
+    "ratio": 0.9396751740139211,
+    "bottom": 1,
+    "cut": 1
+  },
+  "sabana-listen.webp": {
+    "scale": 1.01174,
+    "x": -0.04577,
+    "y": 0.00704,
+    "ratio": 0.9396751740139211,
+    "bottom": 1,
+    "cut": 1
+  },
+  "sabana-proud.webp": {
+    "scale": 1.01174,
+    "x": -0.04577,
+    "y": 0.00704,
+    "ratio": 0.9396751740139211,
+    "bottom": 1,
+    "cut": 1
+  },
+  "sabana-angry.webp": {
+    "scale": 1.01651,
+    "x": -0.04481,
+    "y": 0.00708,
+    "ratio": 0.9396751740139211,
+    "bottom": 1,
+    "cut": 1
+  },
+  "sabana-shy.webp": {
+    "scale": 1.01651,
+    "x": -0.04481,
+    "y": 0.00708,
+    "ratio": 0.9396751740139211,
+    "bottom": 1,
+    "cut": 1
+  },
+  "sabana-quiet.webp": {
+    "scale": 1.01651,
+    "x": -0.04481,
+    "y": 0.00708,
+    "ratio": 0.9396751740139211,
+    "bottom": 1,
+    "cut": 1
+  },
+  "almohada-idle.webp": {
+    "scale": 1.01176,
+    "x": -0.05294,
+    "y": 0.00471,
+    "ratio": 0.9441860465116279,
+    "bottom": 1,
+    "cut": 1
+  },
+  "almohada-listen.webp": {
+    "scale": 1.01176,
+    "x": -0.05294,
+    "y": 0.00471,
+    "ratio": 0.9441860465116279,
+    "bottom": 1,
+    "cut": 1
+  },
+  "almohada-proud.webp": {
+    "scale": 1.01176,
+    "x": -0.05294,
+    "y": 0.00471,
+    "ratio": 0.9441860465116279,
+    "bottom": 1,
+    "cut": 1
+  },
+  "almohada-angry.webp": {
+    "scale": 1.01655,
+    "x": -0.05319,
+    "y": 0.00473,
+    "ratio": 0.9441860465116279,
+    "bottom": 1,
+    "cut": 1
+  },
+  "almohada-shy.webp": {
+    "scale": 1.01655,
+    "x": -0.05319,
+    "y": 0.00236,
+    "ratio": 0.9441860465116279,
+    "bottom": 1,
+    "cut": 1
+  },
+  "almohada-quiet.webp": {
+    "scale": 1.01655,
+    "x": -0.05319,
+    "y": 0.00236,
+    "ratio": 0.9441860465116279,
+    "bottom": 1,
+    "cut": 1
+  },
+  "corset-marfil-idle.webp": {
+    "scale": 1.00836,
+    "x": 0.01532,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "corset-marfil-listen.webp": {
+    "scale": 1.00836,
+    "x": 0.01532,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "corset-marfil-proud.webp": {
+    "scale": 1.00836,
+    "x": 0.01532,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "corset-marfil-angry.webp": {
+    "scale": 1.01117,
+    "x": -0.09218,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "corset-marfil-shy.webp": {
+    "scale": 1.01117,
+    "x": -0.09078,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "corset-marfil-quiet.webp": {
+    "scale": 1.01117,
+    "x": -0.09078,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "cafe-casual-idle.webp": {
+    "scale": 1.01972,
+    "x": -0.03944,
+    "y": 0.01408,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "cafe-casual-listen.webp": {
+    "scale": 1.01972,
+    "x": -0.03944,
+    "y": 0.01408,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "cafe-casual-proud.webp": {
+    "scale": 1.01972,
+    "x": -0.03944,
+    "y": 0.01408,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "cafe-casual-angry.webp": {
+    "scale": 1.01972,
+    "x": -0.03521,
+    "y": 0.01408,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "cafe-casual-shy.webp": {
+    "scale": 1.0226,
+    "x": -0.03672,
+    "y": 0.01412,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "cafe-casual-quiet.webp": {
+    "scale": 1.0226,
+    "x": -0.03672,
+    "y": 0.0113,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "biker-v6-idle.webp": {
+    "scale": 1.01117,
+    "x": 0.01257,
+    "y": 0.00559,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "biker-v6-listen.webp": {
+    "scale": 1.01117,
+    "x": 0.01257,
+    "y": 0.00559,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "biker-v6-proud.webp": {
+    "scale": 1.01117,
+    "x": 0.01257,
+    "y": 0.00559,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "biker-v6-angry.webp": {
+    "scale": 1.00556,
+    "x": -0.06111,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "biker-v6-shy.webp": {
+    "scale": 1.00836,
+    "x": -0.06546,
+    "y": 0.00279,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "biker-v6-quiet.webp": {
+    "scale": 1.00836,
+    "x": -0.07521,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "bolero-noche-v6-idle.webp": {
+    "scale": 1.0226,
+    "x": -0.03249,
+    "y": 0.01412,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "bolero-noche-v6-listen.webp": {
+    "scale": 1.0226,
+    "x": -0.03249,
+    "y": 0.01412,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "bolero-noche-v6-proud.webp": {
+    "scale": 1.0226,
+    "x": -0.03249,
+    "y": 0.01412,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "bolero-noche-v6-angry.webp": {
+    "scale": 1.0226,
+    "x": -0.01695,
+    "y": 0.01412,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "bolero-noche-v6-shy.webp": {
+    "scale": 1.01972,
+    "x": -0.0169,
+    "y": 0.01408,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "bolero-noche-v6-quiet.webp": {
+    "scale": 1.01401,
+    "x": -0.01541,
+    "y": 0.0056,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "camisa-hombros-v6-idle.webp": {
+    "scale": 1.01117,
+    "x": -0.02793,
+    "y": 0.00559,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "camisa-hombros-v6-listen.webp": {
+    "scale": 1.01117,
+    "x": -0.02793,
+    "y": 0.00559,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "camisa-hombros-v6-proud.webp": {
+    "scale": 1.01117,
+    "x": -0.02793,
+    "y": 0.00559,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "camisa-hombros-v6-angry.webp": {
+    "scale": 1.00836,
+    "x": -0.00557,
+    "y": 0.00279,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "camisa-hombros-v6-shy.webp": {
+    "scale": 1.00836,
+    "x": -0.00836,
+    "y": 0.00279,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "camisa-hombros-v6-quiet.webp": {
+    "scale": 1.00556,
+    "x": -0.00278,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "corset-chaqueta-v6-idle.webp": {
+    "scale": 1.00277,
+    "x": 0.0374,
+    "y": 0.00277,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "corset-chaqueta-v6-listen.webp": {
+    "scale": 1.00277,
+    "x": 0.0374,
+    "y": 0.00277,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "corset-chaqueta-v6-proud.webp": {
+    "scale": 1.00277,
+    "x": 0.0374,
+    "y": 0.00277,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "corset-chaqueta-v6-angry.webp": {
+    "scale": 1.00277,
+    "x": -0.06233,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "corset-chaqueta-v6-shy.webp": {
+    "scale": 1.00277,
+    "x": -0.06233,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "corset-chaqueta-v6-quiet.webp": {
+    "scale": 1.00556,
+    "x": -0.0625,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "gala-cristal-v6-idle.webp": {
+    "scale": 1.01117,
+    "x": -0.06145,
+    "y": 0.00559,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "gala-cristal-v6-listen.webp": {
+    "scale": 1.01117,
+    "x": -0.06145,
+    "y": 0.00559,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "gala-cristal-v6-proud.webp": {
+    "scale": 1.01117,
+    "x": -0.06145,
+    "y": 0.00559,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "gala-cristal-v6-angry.webp": {
+    "scale": 1.00836,
+    "x": -0.06825,
+    "y": 0.00279,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "gala-cristal-v6-shy.webp": {
+    "scale": 1.00836,
+    "x": -0.06964,
+    "y": 0.00557,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "gala-cristal-v6-quiet.webp": {
+    "scale": 1.00556,
+    "x": -0.07083,
+    "y": 0.00278,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "gala-terciopelo-v5-idle.webp": {
+    "scale": 1.0,
+    "x": 0.0,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "gala-terciopelo-v5-listen.webp": {
+    "scale": 1.0,
+    "x": 0.0,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "gala-terciopelo-v5-proud.webp": {
+    "scale": 1.0,
+    "x": 0.0,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "gala-terciopelo-v5-angry.webp": {
+    "scale": 1.0,
+    "x": -0.07459,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "gala-terciopelo-v5-shy.webp": {
+    "scale": 1.0,
+    "x": -0.07459,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "gala-terciopelo-v5-quiet.webp": {
+    "scale": 1.0,
+    "x": -0.07597,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "halter-dorado-v5-idle.webp": {
+    "scale": 1.00277,
+    "x": 0.03878,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "halter-dorado-v5-listen.webp": {
+    "scale": 1.00277,
+    "x": 0.03878,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "halter-dorado-v5-proud.webp": {
+    "scale": 1.00277,
+    "x": 0.03878,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "halter-dorado-v5-angry.webp": {
+    "scale": 1.0,
+    "x": -0.08011,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "halter-dorado-v5-shy.webp": {
+    "scale": 1.0,
+    "x": -0.07873,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "halter-dorado-v5-quiet.webp": {
+    "scale": 1.0,
+    "x": -0.08011,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "denim-noche-v5-idle.webp": {
+    "scale": 1.0,
+    "x": -0.03315,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "denim-noche-v5-listen.webp": {
+    "scale": 1.0,
+    "x": -0.03315,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "denim-noche-v5-proud.webp": {
+    "scale": 1.0,
+    "x": -0.03315,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "denim-noche-v5-angry.webp": {
+    "scale": 1.0,
+    "x": -0.05387,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "denim-noche-v5-shy.webp": {
+    "scale": 1.0,
+    "x": -0.05387,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "denim-noche-v5-quiet.webp": {
+    "scale": 1.0,
+    "x": -0.05387,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "cuero-esmeralda-v5-idle.webp": {
+    "scale": 1.00277,
+    "x": -0.07064,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "cuero-esmeralda-v5-listen.webp": {
+    "scale": 1.00277,
+    "x": -0.07064,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "cuero-esmeralda-v5-proud.webp": {
+    "scale": 1.00277,
+    "x": -0.07064,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "cuero-esmeralda-v5-angry.webp": {
+    "scale": 1.0,
+    "x": -0.04006,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "cuero-esmeralda-v5-shy.webp": {
+    "scale": 1.0,
+    "x": -0.04144,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "cuero-esmeralda-v5-quiet.webp": {
+    "scale": 1.0,
+    "x": -0.04144,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "kimono-moderno-v6-idle.webp": {
+    "scale": 1.01685,
+    "x": -0.07584,
+    "y": 0.00281,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "kimono-moderno-v6-listen.webp": {
+    "scale": 1.01685,
+    "x": -0.07584,
+    "y": 0.00281,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "kimono-moderno-v6-proud.webp": {
+    "scale": 1.01685,
+    "x": -0.07584,
+    "y": 0.00281,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "kimono-moderno-v6-angry.webp": {
+    "scale": 1.01685,
+    "x": -0.08567,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "kimono-moderno-v6-shy.webp": {
+    "scale": 1.01117,
+    "x": -0.09218,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "kimono-moderno-v6-quiet.webp": {
+    "scale": 1.01685,
+    "x": -0.09551,
+    "y": 0.00281,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "desayuno-idle.webp": {
+    "scale": 1.00836,
+    "x": -0.06964,
+    "y": 0.00279,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "desayuno-listen.webp": {
+    "scale": 1.00836,
+    "x": -0.06964,
+    "y": 0.00279,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "desayuno-proud.webp": {
+    "scale": 1.00836,
+    "x": -0.06964,
+    "y": 0.00279,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "desayuno-angry.webp": {
+    "scale": 1.01401,
+    "x": -0.05602,
+    "y": 0.0056,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "desayuno-shy.webp": {
+    "scale": 1.01401,
+    "x": -0.07423,
+    "y": 0.0056,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  },
+  "desayuno-quiet.webp": {
+    "scale": 1.00556,
+    "x": -0.06528,
+    "y": 0.0,
+    "ratio": 1.0,
+    "bottom": 1,
+    "cut": 1
+  }
+}

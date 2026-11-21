@@ -1,0 +1,155 @@
+{
+  "dracona-camisa-anudada-v5.png": {
+    "idle": "/static/conversation/camisa-idle.webp",
+    "listen": "/static/conversation/camisa-listen.webp",
+    "proud": "/static/conversation/camisa-proud.webp",
+    "angry": "/static/conversation/camisa-angry.webp",
+    "shy": "/static/conversation/camisa-shy.webp",
+    "quiet": "/static/conversation/camisa-quiet.webp",
+    "restricted": false
+  },
+  "dracona-toalla-v17.png": {
+    "idle": "/static/conversation/toalla-idle.webp",
+    "listen": "/static/conversation/toalla-listen.webp",
+    "proud": "/static/conversation/toalla-proud.webp",
+    "angry": "/static/conversation/toalla-angry.webp",
+    "shy": "/static/conversation/toalla-shy.webp",
+    "quiet": "/static/conversation/toalla-quiet.webp",
+    "restricted": true
+  },
+  "dracona-sabana-v17.png": {
+    "idle": "/static/conversation/sabana-idle.webp",
+    "listen": "/static/conversation/sabana-listen.webp",
+    "proud": "/static/conversation/sabana-proud.webp",
+    "angry": "/static/conversation/sabana-angry.webp",
+    "shy": "/static/conversation/sabana-shy.webp",
+    "quiet": "/static/conversation/sabana-quiet.webp",
+    "restricted": true
+  },
+  "dracona-almohada-v17.png": {
+    "idle": "/static/conversation/almohada-idle.webp",
+    "listen": "/static/conversation/almohada-listen.webp",
+    "proud": "/static/conversation/almohada-proud.webp",
+    "angry": "/static/conversation/almohada-angry.webp",
+    "shy": "/static/conversation/almohada-shy.webp",
+    "quiet": "/static/conversation/almohada-quiet.webp",
+    "restricted": true
+  },
+  "dracona-corset-marfil-v5-joyas-v19.png": {
+    "idle": "/static/conversation/corset-marfil-idle.webp",
+    "listen": "/static/conversation/corset-marfil-listen.webp",
+    "proud": "/static/conversation/corset-marfil-proud.webp",
+    "angry": "/static/conversation/corset-marfil-angry.webp",
+    "shy": "/static/conversation/corset-marfil-shy.webp",
+    "quiet": "/static/conversation/corset-marfil-quiet.webp",
+    "restricted": false
+  },
+  "dracona-cafe-casual-joyas-v19.png": {
+    "idle": "/static/conversation/cafe-casual-idle.webp",
+    "listen": "/static/conversation/cafe-casual-listen.webp",
+    "proud": "/static/conversation/cafe-casual-proud.webp",
+    "angry": "/static/conversation/cafe-casual-angry.webp",
+    "shy": "/static/conversation/cafe-casual-shy.webp",
+    "quiet": "/static/conversation/cafe-casual-quiet.webp",
+    "restricted": false
+  },
+  "dracona-biker-v6-joyas-v19.png": {
+    "idle": "/static/conversation/biker-v6-idle.webp",
+    "listen": "/static/conversation/biker-v6-listen.webp",
+    "proud": "/static/conversation/biker-v6-proud.webp",
+    "angry": "/static/conversation/biker-v6-angry.webp",
+    "shy": "/static/conversation/biker-v6-shy.webp",
+    "quiet": "/static/conversation/biker-v6-quiet.webp",
+    "restricted": false
+  },
+  "dracona-bolero-noche-v6-joyas-v19.png": {
+    "idle": "/static/conversation/bolero-noche-v6-idle.webp",
+    "listen": "/static/conversation/bolero-noche-v6-listen.webp",
+    "proud": "/static/conversation/bolero-noche-v6-proud.webp",
+    "angry": "/static/conversation/bolero-noche-v6-angry.webp",
+    "shy": "/static/conversation/bolero-noche-v6-shy.webp",
+    "quiet": "/static/conversation/bolero-noche-v6-quiet.webp",
+    "restricted": false
+  },
+  "dracona-camisa-hombros-v6-joyas-v19.png": {
+    "idle": "/static/conversation/camisa-hombros-v6-idle.webp",
+    "listen": "/static/conversation/camisa-hombros-v6-listen.webp",
+    "proud": "/static/conversation/camisa-hombros-v6-proud.webp",
+    "angry": "/static/conversation/camisa-hombros-v6-angry.webp",
+    "shy": "/static/conversation/camisa-hombros-v6-shy.webp",
+    "quiet": "/static/conversation/camisa-hombros-v6-quiet.webp",
+    "restricted": false
+  },
+  "dracona-corset-chaqueta-v6-joyas-v19.png": {
+    "idle": "/static/conversation/corset-chaqueta-v6-idle.webp",
+    "listen": "/static/conversation/corset-chaqueta-v6-listen.webp",
+    "proud": "/static/conversation/corset-chaqueta-v6-proud.webp",
+    "angry": "/static/conversation/corset-chaqueta-v6-angry.webp",
+    "shy": "/static/conversation/corset-chaqueta-v6-shy.webp",
+    "quiet": "/static/conversation/corset-chaqueta-v6-quiet.webp",
+    "restricted": false
+  },
+  "dracona-gala-cristal-v6-joyas-v19.png": {
+    "idle": "/static/conversation/gala-cristal-v6-idle.webp",
+    "listen": "/static/conversation/gala-cristal-v6-listen.webp",
+    "proud": "/static/conversation/gala-cristal-v6-proud.webp",
+    "angry": "/static/conversation/gala-cristal-v6-angry.webp",
+    "shy": "/static/conversation/gala-cristal-v6-shy.webp",
+    "quiet": "/static/conversation/gala-cristal-v6-quiet.webp",
+    "restricted": false
+  },
+  "dracona-gala-terciopelo-v5-joyas-v19.png": {
+    "idle": "/static/conversation/gala-terciopelo-v5-idle.webp",
+    "listen": "/static/conversation/gala-terciopelo-v5-listen.webp",
+    "proud": "/static/conversation/gala-terciopelo-v5-proud.webp",
+    "angry": "/static/conversation/gala-terciopelo-v5-angry.webp",
+    "shy": "/static/conversation/gala-terciopelo-v5-shy.webp",
+    "quiet": "/static/conversation/gala-terciopelo-v5-quiet.webp",
+    "restricted": false
+  },
+  "dracona-halter-dorado-v5-joyas-v19.png": {
+    "idle": "/static/conversation/halter-dorado-v5-idle.webp",
+    "listen": "/static/conversation/halter-dorado-v5-listen.webp",
+    "proud": "/static/conversation/halter-dorado-v5-proud.webp",
+    "angry": "/static/conversation/halter-dorado-v5-angry.webp",
+    "shy": "/static/conversation/halter-dorado-v5-shy.webp",
+    "quiet": "/static/conversation/halter-dorado-v5-quiet.webp",
+    "restricted": false
+  },
+  "dracona-denim-noche-v5-joyas-v19.png": {
+    "idle": "/static/conversation/denim-noche-v5-idle.webp",
+    "listen": "/static/conversation/denim-noche-v5-listen.webp",
+    "proud": "/static/conversation/denim-noche-v5-proud.webp",
+    "angry": "/static/conversation/denim-noche-v5-angry.webp",
+    "shy": "/static/conversation/denim-noche-v5-shy.webp",
+    "quiet": "/static/conversation/denim-noche-v5-quiet.webp",
+    "restricted": false
+  },
+  "dracona-cuero-esmeralda-v5-joyas-v19.png": {
+    "idle": "/static/conversation/cuero-esmeralda-v5-idle.webp",
+    "listen": "/static/conversation/cuero-esmeralda-v5-listen.webp",
+    "proud": "/static/conversation/cuero-esmeralda-v5-proud.webp",
+    "angry": "/static/conversation/cuero-esmeralda-v5-angry.webp",
+    "shy": "/static/conversation/cuero-esmeralda-v5-shy.webp",
+    "quiet": "/static/conversation/cuero-esmeralda-v5-quiet.webp",
+    "restricted": false
+  },
+  "dracona-kimono-moderno-v6-joyas-v19.png": {
+    "idle": "/static/conversation/kimono-moderno-v6-idle.webp",
+    "listen": "/static/conversation/kimono-moderno-v6-listen.webp",
+    "proud": "/static/conversation/kimono-moderno-v6-proud.webp",
+    "angry": "/static/conversation/kimono-moderno-v6-angry.webp",
+    "shy": "/static/conversation/kimono-moderno-v6-shy.webp",
+    "quiet": "/static/conversation/kimono-moderno-v6-quiet.webp",
+    "restricted": false
+  },
+  "dracona-desayuno-joyas-v19.png": {
+    "idle": "/static/conversation/desayuno-idle.webp",
+    "listen": "/static/conversation/desayuno-listen.webp",
+    "proud": "/static/conversation/desayuno-proud.webp",
+    "angry": "/static/conversation/desayuno-angry.webp",
+    "shy": "/static/conversation/desayuno-shy.webp",
+    "quiet": "/static/conversation/desayuno-quiet.webp",
+    "restricted": false
+  }
+}
