@@ -25,7 +25,7 @@ PAGE = r"""
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Luna AI</title><meta name="luna-build" content="ritmo-20261121">
+<title>Luna AI</title><meta name="luna-build" content="deshacer-20261121">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&display=swap">
 <style>
 :root{color-scheme:dark;--bg:#07040f;--ln:rgba(var(--accrgb),.4);--vio:#a66bff;--cy:#35e1ff;--tx:#efe7ff;--mu:#a597c4;--acc1:#8a33f0;--acc2:#4a1a96;--accrgb:176,110,255;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -644,7 +644,7 @@ function loadConversations(){
     turn&&['user','assistant'].includes(turn.role)&&typeof turn.content==='string'
    ).slice(-40).map(turn=>({role:turn.role,content:turn.content.slice(0,2000),gesture:turn.gesture||null,
     action:typeof turn.action==='string'?boundText(turn.action,240):null,scene_action:cleanSceneAction(turn.scene_action),scene_emotion:sceneEmotion(turn.scene_emotion,turn.scene_action||''),
-    private_scene:turn.role==='user'&&turn.private_scene===true,event:['welcome','wake','initiative','departure','return'].includes(turn.event)?turn.event:null,at:Number.isFinite(turn.at)?Math.min(now,turn.at):now,beforeTimeline:turn.beforeTimeline&&typeof turn.beforeTimeline==='object'?turn.beforeTimeline:null,beforeMemory:turn.role==='user'?memoryCheckpoint(turn.beforeMemory):null}));
+    private_scene:turn.role==='user'&&turn.private_scene===true,event:['welcome','wake','initiative','departure','return'].includes(turn.event)?turn.event:null,at:Number.isFinite(turn.at)?Math.min(now,turn.at):now,beforeScene:turn.beforeScene&&typeof turn.beforeScene==='object'?turn.beforeScene:null,beforeTimeline:turn.beforeTimeline&&typeof turn.beforeTimeline==='object'?turn.beforeTimeline:null,beforeMemory:turn.role==='user'?memoryCheckpoint(turn.beforeMemory):null}));
   }
  }catch(e){}
  archiveNarrative();
@@ -676,6 +676,39 @@ function memoryCheckpoint(value){const clean=cleanMemory(value);return clean?{..
 function editCopies(){try{const raw=JSON.parse(localStorage.getItem('luna.edits.v1')||'[]');return Array.isArray(raw)?raw.slice(-3):[];}catch{return [];}}
 function backupEditedBranch(character){const copies=editCopies();copies.push({at:Date.now(),character,conversations:JSON.parse(JSON.stringify(conversations[character])),memory:memoryCheckpoint(memories[character])});localStorage.setItem('luna.edits.v1',JSON.stringify(copies.slice(-3)));}
 function downloadEdits(){const url=URL.createObjectURL(new Blob([JSON.stringify({savedAt:new Date().toISOString(),versions:editCopies()},null,2)],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download='Luna-versiones-antes-de-editar.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+
+async function undoUserTurn(index,target,character=cur){
+ if(character!==cur||busy.has(character)||syncConflict)return;
+ const run=()=>{
+  loadConversations();
+  const current=conversations[character][index];
+  if(!current||current.role!=='user'||current.content!==target.content||current.at!==target.at){$('#wardrobe-status').textContent='La conversación cambió. Abre Editar otra vez.';return;}
+  cancelFollowup(character);stopVoice();
+  const keys=[memoryKey,durableMemoryKey,narrativeKey,'luna.edits.v1',sceneControlKey,timelineKey];
+  const saved=new Map(keys.map(k=>[k,localStorage.getItem(k)]));
+  const turns=conversations[character].slice(),memory=memories[character],oldSnapshot=sharedSnapshot;
+  try{
+   backupEditedBranch(character);
+   const archive=narrativeStore();for(const entry of archive.entries)if(entry.character===character&&entry.at>=current.at)entry.active=false;
+   localStorage.setItem(narrativeKey,JSON.stringify(archive));
+   conversations[character]=turns.slice(0,index);
+   memories[character]=memoryCheckpoint(current.beforeMemory)||{facts:[],scene:'',story:[],through:0,knowledge_version:2,known_by:[character]};
+   if(current.beforeTimeline)saveTimeline(character,current.beforeTimeline);
+   if(current.beforeScene)saveSceneSettings(character,current.beforeScene);
+   else saveSceneSettings(character,{mode:'chat',lastActive:Date.now(),lastAttempt:Date.now(),lastGreeting:Date.now()});
+   if(saveConversations()!==true)throw new Error('storage');
+   showConversation();setState('idle');
+   $('#wardrobe-status').textContent='Turno deshecho. Se retiró este mensaje y lo que seguía; tienes una copia en Descargar versiones anteriores.';
+  }catch{
+   for(const [key,value] of saved){try{if(value===null)localStorage.removeItem(key);else localStorage.setItem(key,value);}catch{}}
+   conversations[character]=turns;memories[character]=memory;sharedSnapshot=oldSnapshot;
+   showConversation();$('#wardrobe-status').textContent='No se pudo guardar el cambio. Se conserva la conversación anterior; descarga una copia y libera espacio.';
+  }
+ };
+ if(navigator.locks)return navigator.locks.request(chatLockName,{ifAvailable:true},lock=>{if(lock)return run();$('#wardrobe-status').textContent='Otra ventana está usando la conversación. Espera a que termine.';});
+ return run();
+}
+
 function editUserTurn(index,bubble){
  if(busy.has(cur))return;cancelFollowup(cur);stopVoice();setState('idle');
  document.querySelectorAll('.turn-editor').forEach(e=>e.remove());
@@ -683,11 +716,13 @@ function editUserTurn(index,bubble){
  const editor=document.createElement('div');editor.className='turn-editor';
  const input=document.createElement('textarea');input.value=turn.content;input.maxLength=2000;input.setAttribute('aria-label','Corregir mensaje');
  const note=document.createElement('small');note.textContent=turn.beforeMemory?'Se regenerará desde aquí. Las respuestas posteriores quedarán en una copia descargable.':'Mensaje de una versión anterior: se regenerará desde aquí y se reconstruirán los recuerdos desde el historial previo disponible. Se guardará una copia de la versión anterior.';
+ note.textContent+=' Deshacer desde aquí retira este mensaje y toda la continuación sin generar otra respuesta.';
  const controls=document.createElement('div');controls.className='edit-controls';
  const save=document.createElement('button');save.type='button';save.textContent='Guardar y regenerar';
  const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancelar';cancel.onclick=()=>editor.remove();
- save.onclick=()=>{const q=input.value.trim();if(!q||character!==cur)return;if(q===turn.content){editor.remove();return;}save.disabled=true;editor.remove();ask(q,{index,content:turn.content,at:turn.at});};
- controls.append(save,cancel);editor.append(input,note,controls);bubble.after(editor);input.focus();
+ save.onclick=()=>{const q=input.value.trim();if(character!==cur)return;if(!q){note.textContent='Para retirar el mensaje y su continuación, pulsa Deshacer desde aquí.';return;}if(q===turn.content){editor.remove();return;}save.disabled=true;editor.remove();ask(q,{index,content:turn.content,at:turn.at});};
+ const undo=document.createElement('button');undo.type='button';undo.textContent='Deshacer desde aquí';undo.onclick=()=>{undo.disabled=true;undoUserTurn(index,turn,character);};
+ controls.append(save,undo,cancel);editor.append(input,note,controls);bubble.after(editor);input.focus();
 }
 function showConversation(){
  syncSceneControls();
@@ -887,7 +922,7 @@ async function askStored(q,character,edit=null,event=null){
  busy.add(character);
  stopVoice();
  const history=conversations[character].slice(-40);
- if(!event||event.kind==='local')conversations[character].push({role:'user',content:q,at:Date.now(),beforeTimeline:timeline(character),beforeMemory:memoryCheckpoint(memories[character]),private_scene:(localOnly&&(!closesSleep||settings.mode==='solo'))||privateEdit});
+ if(!event||event.kind==='local')conversations[character].push({role:'user',content:q,at:Date.now(),beforeScene:{...settings},beforeTimeline:timeline(character),beforeMemory:memoryCheckpoint(memories[character]),private_scene:(localOnly&&(!closesSleep||settings.mode==='solo'))||privateEdit});
  if(localOnly||privateEdit){if(privateEdit)saveSceneSettings(character,{mode:'solo'});archiveNarrative();conversations[character]=rotateHistory(conversations[character]);saveConversations();showConversation();busy.delete(character);setState('idle');document.querySelectorAll('.message-edit').forEach(b=>b.disabled=false);$('#f button[type=submit]').disabled=false;if((!edit||privateEdit)&&!closesSleep&&(settings.mode==='solo'||privateEdit))advanceNarrative(q,character);return;}
  if(!event)saveSceneSettings(character,{lastActive:Date.now()});
 
@@ -1998,7 +2033,7 @@ def _dialogue_response(raw, character):
 
 @app.get("/api/version")
 def version():
-    return jsonify(build="ritmo-20261121")
+    return jsonify(build="deshacer-20261121")
 
 def _scene_text(value):
     return str(value or "").casefold().translate(str.maketrans("áéíóúüñ", "aeiouun"))
@@ -2403,7 +2438,7 @@ def chat():
             response["routing_attempts"] = failures
             response["preferred_brain"] = enabled[0][0]
             response["request_id"] = request_id
-            response["build"] = "ritmo-20261121"
+            response["build"] = "deshacer-20261121"
             return jsonify(response)
         except (HTTPError, URLError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError) as error:
             detail = _failure_detail(name, error)
