@@ -25,7 +25,7 @@ PAGE = r"""
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Luna AI</title><meta name="luna-build" content="reaccion-explicita-20261121">
+<title>Luna AI</title><meta name="luna-build" content="silencio-ampliado-20261121">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&display=swap">
 <style>
 :root{color-scheme:dark;--bg:#07040f;--ln:rgba(var(--accrgb),.4);--vio:#a66bff;--cy:#35e1ff;--tx:#efe7ff;--mu:#a597c4;--acc1:#8a33f0;--acc2:#4a1a96;--accrgb:176,110,255;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -314,7 +314,7 @@ button,summary,select{transition:background .2s,border-color .2s,box-shadow .2s}
  <div id="scene-controls"><div class="panel-heading"><b>A tu ritmo</b><small>Elige cómo continúa la escena</small></div><label class="scene-mode-label">Tipo de conversación<select id="chat-kind" aria-label="Tipo de conversación"><option value="normal">Chat normal</option><option value="role">Rol</option></select></label><label class="scene-mode-label">Modo de escena<select id="scene-mode" aria-label="Modo de escena"><option value="chat">Conversar</option><option value="solo">Narrar a solas</option><option value="sleep">Descansando</option></select></label><button type="button" id="scene-start">Ella empieza</button><button type="button" id="scene-sleep">Descansar</button><label><input type="checkbox" id="scene-welcome"> Saludo al abrir</label><label class="scene-wake-label">Despertar<input type="time" id="scene-wake" value="07:00" aria-label="Hora de despertar"></label><label class="scene-mode-label">Avanzar tiempo de la historia (minutos)<input id="story-minutes" type="number" min="1" max="1440" value="60" aria-label="Minutos narrativos"></label><button id="story-advance" type="button" style="grid-column:1/-1">Avanzar reloj narrativo</button><button type="button" id="knowledge-review" style="grid-column:1/-1">Revisar conocimiento y archivo</button><span id="scene-note" role="status"></span></div></details></div>
  <p id="narrative-note" role="status" style="max-width:900px;margin:5px auto;font-size:10px;color:var(--mu)"></p><button id="return-retry" type="button" hidden>Reintentar regreso</button>
  <p id="audio-note" role="status" hidden style="max-width:900px;margin:5px auto;font-size:10px;color:var(--mu)"></p>
- <form id="f"><button type="button" id="mic" aria-pressed="false" aria-label="Micrófono"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3m-4 0h8"/></svg></button><input id="q" placeholder="Escríbele a Luna…" autocomplete="off"><button type="submit" aria-label="Enviar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 14-8-4 16-3-6-7-2Zm7 2 7-10"/></svg></button></form>
+ <form id="f"><button type="button" id="mic" aria-pressed="false" aria-label="Micrófono"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3m-4 0h8"/></svg></button><input id="q" maxlength="4000" placeholder="Escríbele a Luna…" autocomplete="off"><button type="submit" aria-label="Enviar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 14-8-4 16-3-6-7-2Zm7 2 7-10"/></svg></button></form>
 </footer>
 </div>
 <script>
@@ -642,7 +642,7 @@ function loadConversations(){
   for(const character of Object.keys(conversations)){
    if(Array.isArray(stored[character]))conversations[character]=stored[character].filter(turn=>
     turn&&['user','assistant'].includes(turn.role)&&typeof turn.content==='string'
-   ).slice(-40).map(turn=>({role:turn.role,content:turn.content.slice(0,2000),gesture:turn.gesture||null,
+   ).slice(-40).map(turn=>({role:turn.role,content:turn.content.slice(0,4000),gesture:turn.gesture||null,
     action:typeof turn.action==='string'?boundText(turn.action,240):null,scene_action:cleanSceneAction(turn.scene_action),scene_emotion:sceneEmotion(turn.scene_emotion,turn.scene_action||''),
     private_scene:turn.role==='user'&&turn.private_scene===true,event:['welcome','wake','initiative','departure','return'].includes(turn.event)?turn.event:null,at:Number.isFinite(turn.at)?Math.min(now,turn.at):now,beforeScene:turn.beforeScene&&typeof turn.beforeScene==='object'?turn.beforeScene:null,beforeTimeline:turn.beforeTimeline&&typeof turn.beforeTimeline==='object'?turn.beforeTimeline:null,beforeMemory:turn.role==='user'?memoryCheckpoint(turn.beforeMemory):null}));
   }
@@ -714,7 +714,7 @@ function editUserTurn(index,bubble){
  document.querySelectorAll('.turn-editor').forEach(e=>e.remove());
  const turn=conversations[cur][index],character=cur;if(!turn||turn.role!=='user')return;
  const editor=document.createElement('div');editor.className='turn-editor';
- const input=document.createElement('textarea');input.value=turn.content;input.maxLength=2000;input.setAttribute('aria-label','Corregir mensaje');
+ const input=document.createElement('textarea');input.value=turn.content;input.maxLength=4000;input.setAttribute('aria-label','Corregir mensaje');
  const note=document.createElement('small');note.textContent=turn.beforeMemory?'Se regenerará desde aquí. Las respuestas posteriores quedarán en una copia descargable.':'Mensaje de una versión anterior: se regenerará desde aquí y se reconstruirán los recuerdos desde el historial previo disponible. Se guardará una copia de la versión anterior.';
  note.textContent+=' Deshacer desde aquí retira este mensaje y toda la continuación sin generar otra respuesta.';
  const controls=document.createElement('div');controls.className='edit-controls';
@@ -977,8 +977,8 @@ async function askStored(q,character,edit=null,event=null){
 const rhythmKey='luna.rhythm.v1';
 function rhythmDraft(character=cur){try{return JSON.parse(localStorage.getItem(rhythmKey)||'{}')[character]||{holding:false,text:''};}catch{return {holding:false,text:''};}}
 function saveRhythm(value,character=cur){let all={};try{all=JSON.parse(localStorage.getItem(rhythmKey)||'{}');}catch{}all[character]=value;localStorage.setItem(rhythmKey,JSON.stringify(all));syncRhythm();}
-function syncRhythm(){const r=rhythmDraft();for(const id of ['scene-mode','scene-start','scene-sleep','story-advance'])$('#'+id).disabled=r.holding;$('#rhythm-hold').setAttribute('aria-pressed',String(r.holding));$('#rhythm-hold').textContent=r.holding?'Añadir al borrador':'Seguir escribiendo';$('#rhythm-release').hidden=!r.holding;$('#rhythm-note').textContent=r.holding?(r.text?'Borrador guardado ('+r.text.length+'/2000): '+r.text.slice(-85):'Puedes enviar varias partes. Ella responderá cuando tú termines.') : '';}
-function collectRhythm(){const r=rhythmDraft(),q=$('#q').value.trim();const text=[r.text,q].filter(Boolean).join('\n\n');if(text.length>2000){$('#rhythm-note').textContent='El turno completo supera 2000 caracteres. Acorta el texto antes de continuar.';return false;}saveRhythm({holding:true,text});$('#q').value='';return true;}
+function syncRhythm(){const r=rhythmDraft();for(const id of ['scene-mode','scene-start','scene-sleep','story-advance'])$('#'+id).disabled=r.holding;$('#rhythm-hold').setAttribute('aria-pressed',String(r.holding));$('#rhythm-hold').textContent=r.holding?'Añadir al borrador':'Seguir escribiendo';$('#rhythm-release').hidden=!r.holding;$('#rhythm-note').textContent=r.holding?(r.text?'Borrador guardado ('+r.text.length+'/4000): '+r.text.slice(-85):'Puedes enviar varias partes. Ella responderá cuando tú termines.') : '';}
+function collectRhythm(){const r=rhythmDraft(),q=$('#q').value.trim();const text=[r.text,q].filter(Boolean).join('\n\n');if(text.length>4000){$('#rhythm-note').textContent='El turno completo supera 4000 caracteres. Acorta el texto antes de continuar.';return false;}saveRhythm({holding:true,text});$('#q').value='';return true;}
 $('#rhythm-hold').onclick=()=>{if(busy.has(cur)||sceneSettings().mode!=='chat'){ $('#rhythm-note').textContent='Disponible al conversar, después de terminar la respuesta actual.';return;}cancelFollowup(cur);stopVoice();if(rhythmDraft().holding)collectRhythm();else{saveRhythm({holding:true,text:''});if($('#q').value.trim())collectRhythm();}};
 $('#rhythm-release').onclick=async()=>{if(busy.has(cur)||sceneSettings().mode!=='chat'||!collectRhythm())return;const r=rhythmDraft();if(!r.text)return;const character=cur;saveRhythm({holding:false,text:''},character);await ask(r.text);};
 setInterval(syncRhythm,1000);setTimeout(syncRhythm,0);
@@ -1709,7 +1709,7 @@ def _clean_history(raw, limit=40):
             continue
         if turn["role"] == "assistant" and _has_internal_output(text):
             continue
-        text = text.strip()[:2000]
+        text = text.strip()[:4000]
         if total + len(text) > 28000:
             break
         entry = {"role": turn["role"], "content": text}
@@ -1963,7 +1963,7 @@ def _extract_private_reaction(text, character):
 
 
 
-def _explicit_silent_reaction(message, character):
+def _short_silent_reaction(message, character):
     """Only a whole, explicit laugh/cry stage direction; never infer from a topic."""
     if not isinstance(message, str) or len(message) > 400:
         return None
@@ -1998,6 +1998,58 @@ def _explicit_silent_reaction(message, character):
     original = re.sub(r'\bmis\b', 'tus', original, flags=re.I)
     original = re.sub(r'\bmi\b', 'tu', original, flags=re.I)
     return {'reply': '', 'scene_action': name+' '+original+'.', 'scene_emotion': emotion, 'reaction_only': True, 'gesture': None}
+
+
+
+def _explicit_silent_reaction(message, character):
+    """Final authored stage direction overrides preceding speech/questions in this turn."""
+    if not isinstance(message, str) or len(message) > 4000:
+        return None
+    name, aliases = {'dracona': ('Draconia', r'draconia|dracona|nia'), 'rem': ('Aurora', r'aurora|rory|rem'), 'luna': ('Luna', r'luna')}[character]
+    source = message.strip()
+    # A final marked action is unambiguous even after a long spoken question.
+    marked = re.search(r'\*+([^*]+?)\*+\s*[.!]?\s*$', source)
+    if marked:
+        action = marked[1].strip()
+    else:
+        subjects = list(re.finditer(r'\b(?:ella|'+aliases+r')\b', source, re.I))
+        if not subjects:
+            return None
+        start = subjects[-1].start()
+        prefix = source[:start]
+        # Don't treat a quoted example, reported speech, or a question as direction.
+        if prefix.count('"') % 2 or prefix.count('“') > prefix.count('”') or prefix.count('*') % 2:
+            return None
+        if re.search(r'\b(?:si|cuando|ojala|quizas|ayer|antes|imagino que|recuerdo que|digo que|dije que)\s*$', _scene_text(prefix)):
+            return None
+        action = source[start:].strip()
+    if len(action) > 700 or any(c in action for c in ('?', '¿', '"', '“', '”', '[', ']', ':')) or _has_internal_output(action):
+        return None
+    short = _short_silent_reaction(action, character)
+    if short:
+        return short
+    norm = _scene_text(action)
+    subject = re.match(r'^(?:ella(?: ella)?|'+aliases+r')\s+(.+)', norm)
+    if not subject:
+        return None
+    body = subject[1]
+    # Silence must be explicit for free-form actions; merely looking shy is not enough.
+    silence = r'\b(?:no (?:me |te )?(?:dice (?:nada|una palabra)|responde|contesta|habla)|sin (?:decir (?:nada|una palabra)|hablar|responder|contestar)|(?:se queda|permanece|sigue) (?:callada|en silencio)|guarda silencio|solo (?:llora|solloza|se rie))\b'
+    if not re.search(silence, body):
+        return None
+    silent_removed = re.sub(silence, '', body)
+    if re.search(r'\b(?:dice|diga|diciendo|habla|hable|responde|responda|contesta|conteste|pregunta|pregunte|cuenta|cuente|explica|explique|susurra|susurre|grita|grite|anade|comenta)\b', silent_removed):
+        return None
+    if re.search(r'\b(?:pero no|no se queda|no permanece|no sigue|rompe el silencio|deja de callar|hasta que|a menos que|tal vez|quizas|podria|ojala|yo|tu|nosotros|usuario|instrucciones|sistema|prompt|pensamiento|piensa)\b', body):
+        return None
+    original = re.sub(r'^(?:ella(?: ella)?|'+aliases+r')\s+', '', action, flags=re.I).rstrip('.!')
+    for old,new in [('me','te'),('mis','tus'),('mi','tu')]:
+        original = re.sub(r'\b'+old+r'\b',new,original,flags=re.I)
+    reaction = _clean_scene_action(name+' '+original+'.')
+    if not reaction:
+        return None
+    emotion = 'sad' if re.search(r'\b(?:llora|llorando|llorar|solloza|sollozando)\b', body) else 'shy' if re.search(r'avergonz|sonroj',body) else 'affection' if re.search(r'carcajad|se rie|riendo|abraza',body) else 'neutral'
+    return {'reply':'', 'scene_action':reaction, 'scene_emotion':emotion, 'reaction_only':True, 'gesture':None}
 
 
 def _dialogue_response(raw, character):
@@ -2071,7 +2123,7 @@ def _dialogue_response(raw, character):
 
 @app.get("/api/version")
 def version():
-    return jsonify(build="reaccion-explicita-20261121")
+    return jsonify(build="silencio-ampliado-20261121")
 
 def _scene_text(value):
     return str(value or "").casefold().translate(str.maketrans("áéíóúüñ", "aeiouun"))
@@ -2364,8 +2416,8 @@ def chat():
     message = data.get("message")
     if event:
         message = {"welcome": "[Control de interfaz: saludo al volver a abrir la conversación.]", "wake": "[Control de interfaz: iniciar una escena de buenos días tras el descanso registrado.]", "initiative": "[Control de interfaz: el personaje toma la iniciativa de una nueva escena.]", "departure": "[Control: el personaje sale a un recado propio para dejar al interlocutor a solas.]", "return": "[Control: se alcanzó el regreso previsto del personaje.]"}[event]
-    if not isinstance(message, str) or not message.strip() or len(message) > 2000:
-        return jsonify(error="Escribe un mensaje de hasta 2000 caracteres."), 400
+    if not isinstance(message, str) or not message.strip() or len(message) > 4000:
+        return jsonify(error="Escribe un mensaje de hasta 4000 caracteres."), 400
     message = message.strip()
     character = data.get("character", "luna")
     if not isinstance(character, str):
@@ -2388,7 +2440,7 @@ def chat():
         silent.update(brain='Escena local', model=None, requested_brain='OpenRouter' if preference == 'openrouter' else 'Gemini',
                       preferred_brain='OpenRouter' if preference == 'openrouter' else 'Gemini', routing_attempts=[],
                       chat_mode=chat_mode or ('role' if preference == 'openrouter' else 'normal'),
-                      request_id=uuid.uuid4().hex[:12], build='reaccion-explicita-20261121')
+                      request_id=uuid.uuid4().hex[:12], build='silencio-ampliado-20261121')
         return jsonify(silent)
     history = _knowledge_context(data, character, message)
     candidate_memory = data.get("memory")
@@ -2484,7 +2536,7 @@ def chat():
             response["routing_attempts"] = failures
             response["preferred_brain"] = enabled[0][0]
             response["request_id"] = request_id
-            response["build"] = "reaccion-explicita-20261121"
+            response["build"] = "silencio-ampliado-20261121"
             return jsonify(response)
         except (HTTPError, URLError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError) as error:
             detail = _failure_detail(name, error)
