@@ -25,7 +25,7 @@ PAGE = r"""
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Luna AI</title><meta name="luna-build" content="iniciativa-continua-20261121">
+<title>Luna AI</title><meta name="luna-build" content="gemini-principal-20261121">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&display=swap">
 <style>
 :root{color-scheme:dark;--bg:#07040f;--ln:rgba(var(--accrgb),.4);--vio:#a66bff;--cy:#35e1ff;--tx:#efe7ff;--mu:#a597c4;--acc1:#8a33f0;--acc2:#4a1a96;--accrgb:176,110,255;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -345,7 +345,7 @@ addEventListener('storage',e=>{if(e.key===timelineKey)syncTimeline();});document
 
 const chatModesKey='luna.chatmodes.v1';
 function chatMode(character){try{const values=JSON.parse(localStorage.getItem(chatModesKey)||'{}');return values?.[character]==='role'?'role':'normal';}catch{return 'normal';}}
-function preferredProvider(character){return chatMode(character)==='role'?'openrouter':'gemini';}
+function preferredProvider(character){return 'gemini';}
 function syncChatMode(){const character=app.dataset.char||'dracona';$('#chat-kind').value=chatMode(character);}
 $('#chat-kind').onchange=e=>{const character=app.dataset.char||'dracona';let values={};try{const raw=JSON.parse(localStorage.getItem(chatModesKey)||'{}');if(raw&&typeof raw==='object'&&!Array.isArray(raw))values=raw;}catch{}values[character]=e.target.value==='role'?'role':'normal';localStorage.setItem(chatModesKey,JSON.stringify(values));syncChatMode();};
 new MutationObserver(syncChatMode).observe(app,{attributes:true,attributeFilter:['data-char']});
@@ -1488,7 +1488,7 @@ def _openrouter_error_details(payload=None, status=None, raw_body=None):
     if kind:detail['upstream_type']=kind
     known_providers={'Venice','Google','Google AI Studio','Azure','OpenAI','Anthropic','DeepInfra','Together','Fireworks','Mistral','Groq','OpenRouter','Amazon Bedrock'}
     if isinstance(metadata.get('provider_name'), str) and metadata['provider_name'] in known_providers:detail['upstream_provider']=metadata['provider_name']
-    detail['requested_model']=_safe_model_name(os.environ.get('OPENROUTER_MODEL','').strip() or 'cognitivecomputations/dolphin-mistral-24b-venice-edition')
+    detail['requested_model']=_safe_model_name(os.environ.get('OPENROUTER_MODEL','').strip())
     return detail
 
 
@@ -1502,8 +1502,10 @@ def _openrouter_answer(message, instrucciones, history=None, timeout=None):
     key = os.environ.get("OPENROUTER_API_KEY", "").strip()
     if not key:
         raise RuntimeError("OpenRouter sin clave configurada")
+    if not os.environ.get("OPENROUTER_MODEL", "").strip():
+        raise RuntimeError("OpenRouter sin modelo configurado")
     payload = {
-        "model": (os.environ.get("OPENROUTER_MODEL", "").strip() or "cognitivecomputations/dolphin-mistral-24b-venice-edition"),
+        "model": (os.environ.get("OPENROUTER_MODEL", "").strip()),
         "messages": [{"role": "system", "content": instrucciones}] + _history_messages(history) + [{"role": "user", "content": message}],
         "max_tokens": 1800,
     }
@@ -1551,7 +1553,7 @@ def _openrouter_answer(message, instrucciones, history=None, timeout=None):
         "reply": answer,
         "brain": "OpenRouter",
         "requested_model": payload["model"],
-        "model": result.get("model", os.environ.get("OPENROUTER_MODEL", "").strip() or "cognitivecomputations/dolphin-mistral-24b-venice-edition"),
+        "model": result.get("model", os.environ.get("OPENROUTER_MODEL", "").strip()),
     }
 
 
@@ -2124,7 +2126,7 @@ def _dialogue_response(raw, character):
 
 @app.get("/api/version")
 def version():
-    return jsonify(build="iniciativa-continua-20261121")
+    return jsonify(build="gemini-principal-20261121")
 
 def _scene_text(value):
     return str(value or "").casefold().translate(str.maketrans("áéíóúüñ", "aeiouun"))
@@ -2454,11 +2456,11 @@ def chat():
         message = "[Control: no hubo palabras audibles; toma una iniciativa propia sin atribuir palabras al interlocutor.]"
     silent = _explicit_silent_reaction(message, character) if not event else None
     if silent:
-        preference = ('openrouter' if chat_mode == 'role' else 'gemini') if chat_mode else data.get('model_preference', 'gemini')
+        preference = 'gemini'
         silent.update(brain='Escena local', model=None, requested_brain='OpenRouter' if preference == 'openrouter' else 'Gemini',
                       preferred_brain='OpenRouter' if preference == 'openrouter' else 'Gemini', routing_attempts=[],
                       chat_mode=chat_mode or ('role' if preference == 'openrouter' else 'normal'),
-                      request_id=uuid.uuid4().hex[:12], build='iniciativa-continua-20261121')
+                      request_id=uuid.uuid4().hex[:12], build='gemini-principal-20261121')
         return jsonify(silent)
     history = _knowledge_context(data, character, message)
     candidate_memory = data.get("memory")
@@ -2530,11 +2532,11 @@ def chat():
         "claude": ("Claude", "ANTHROPIC_API_KEY", _claude_answer),
         "openai": ("GPT", "OPENAI_API_KEY", _openai_answer),
     }
-    preference = ("openrouter" if chat_mode == "role" else "gemini") if chat_mode else data.get("model_preference", "gemini")
+    preference = "gemini"
     if not isinstance(preference, str) or preference not in providers:
         preference = "gemini"
     keys = [preference] + [key for key in providers if key != preference]
-    enabled = [providers[key] for key in keys if os.environ.get(providers[key][1], "").strip()]
+    enabled = [providers[key] for key in keys if os.environ.get(providers[key][1], "").strip() and (key != "openrouter" or os.environ.get("OPENROUTER_MODEL", "").strip())]
     request_id = uuid.uuid4().hex[:12]
     failures = []
     if not enabled:
@@ -2555,7 +2557,7 @@ def chat():
             response["routing_attempts"] = failures
             response["preferred_brain"] = enabled[0][0]
             response["request_id"] = request_id
-            response["build"] = "iniciativa-continua-20261121"
+            response["build"] = "gemini-principal-20261121"
             return jsonify(response)
         except (HTTPError, URLError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError) as error:
             detail = _failure_detail(name, error)
@@ -2629,7 +2631,7 @@ def speak():
 def _openrouter_startup_probe():
     """Opt-in isolated probe. Never receives chat, history, or character prompts."""
     key = os.environ.get('OPENROUTER_API_KEY', '').strip()
-    model = os.environ.get('OPENROUTER_MODEL', '').strip() or 'cognitivecomputations/dolphin-mistral-24b-venice-edition'
+    model = os.environ.get('OPENROUTER_MODEL', '').strip()
     def safe(value):
         text = str(value)
         if key:
@@ -2638,6 +2640,9 @@ def _openrouter_startup_probe():
         return text.replace('\r', ' ').replace('\n', ' ')[:1800]
     if not key:
         app.logger.warning('Luna PRUEBA_OPENROUTER clave_ausente')
+        return
+    if not model:
+        app.logger.warning('Luna PRUEBA_OPENROUTER desactivada_sin_modelo')
         return
     tests = [
         ('ACCESO_CLAVE', 'https://openrouter.ai/api/v1/key', None),
