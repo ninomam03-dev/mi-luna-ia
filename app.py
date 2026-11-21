@@ -25,7 +25,7 @@ PAGE = r"""
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Luna AI</title><meta name="luna-build" content="openrouter-diagnostico-20261120">
+<title>Luna AI</title><meta name="luna-build" content="openrouter-prueba-20261120">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&display=swap">
 <style>
 :root{color-scheme:dark;--bg:#07040f;--ln:rgba(var(--accrgb),.4);--vio:#a66bff;--cy:#35e1ff;--tx:#efe7ff;--mu:#a597c4;--acc1:#8a33f0;--acc2:#4a1a96;--accrgb:176,110,255;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1978,7 +1978,7 @@ def _dialogue_response(raw, character):
 
 @app.get("/api/version")
 def version():
-    return jsonify(build="openrouter-diagnostico-20261120")
+    return jsonify(build="openrouter-prueba-20261120")
 
 def _scene_text(value):
     return str(value or "").casefold().translate(str.maketrans("áéíóúüñ", "aeiouun"))
@@ -2382,7 +2382,7 @@ def chat():
             response["routing_attempts"] = failures
             response["preferred_brain"] = enabled[0][0]
             response["request_id"] = request_id
-            response["build"] = "openrouter-diagnostico-20261120"
+            response["build"] = "openrouter-prueba-20261120"
             return jsonify(response)
         except (HTTPError, URLError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError) as error:
             detail = _failure_detail(name, error)
@@ -2451,6 +2451,67 @@ def speak():
 # ==========================================
 # INICIAR LUNA AI
 # ==========================================
+
+
+def _openrouter_startup_probe():
+    """Opt-in isolated probe. Never receives chat, history, or character prompts."""
+    key = os.environ.get('OPENROUTER_API_KEY', '').strip()
+    model = os.environ.get('OPENROUTER_MODEL', '').strip() or 'cognitivecomputations/dolphin-mistral-24b-venice-edition'
+    def safe(value):
+        text = str(value)
+        if key:
+            text = text.replace(key, '[CLAVE OCULTA]')
+        text = re.sub(r'(?i)bearer\s+\S+|sk-[A-Za-z0-9_-]+', '[CLAVE OCULTA]', text)
+        return text.replace('\r', ' ').replace('\n', ' ')[:1800]
+    if not key:
+        app.logger.warning('Luna PRUEBA_OPENROUTER clave_ausente')
+        return
+    tests = [
+        ('ACCESO_CLAVE', 'https://openrouter.ai/api/v1/key', None),
+        ('SALUDO_MINIMO', 'https://openrouter.ai/api/v1/chat/completions', {
+            'model': model, 'messages': [{'role': 'user', 'content': 'Hola. Responde solamente: hola.'}], 'max_tokens': 20
+        }),
+    ]
+    for label, url, payload in tests:
+        headers = {'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json',
+                   'HTTP-Referer': 'https://mi-asistente-exilon.onrender.com', 'X-OpenRouter-Title': 'Luna AI'}
+        req = Request(url, data=None if payload is None else json.dumps(payload).encode('utf-8'), headers=headers)
+        try:
+            try:
+                with urlopen(req, timeout=12) as response:
+                    status, body = response.status, response.read(16384)
+            except HTTPError as error:
+                status, body = error.code, error.read(16384)
+            try:
+                result = json.loads(body)
+            except ValueError:
+                app.logger.warning('Luna PRUEBA_OPENROUTER prueba=%s http=%s respuesta_no_json=%s', label, status, safe(body.decode('utf-8', errors='replace')))
+                continue
+            error = result.get('error') if isinstance(result, dict) else None
+            if not error and isinstance(result, dict):
+                choices = result.get('choices')
+                if isinstance(choices, list) and choices and isinstance(choices[0], dict):
+                    error = choices[0].get('error')
+            if error:
+                # Only this synthetic request may log a bounded message. Normal chat diagnostics remain private.
+                error = error if isinstance(error, dict) else {'message': error}
+                metadata = error.get('metadata') if isinstance(error.get('metadata'), dict) else {}
+                app.logger.warning('Luna PRUEBA_OPENROUTER prueba=%s http=%s codigo=%s mensaje=%s upstream=%s detalle=%s',
+                    label, status, safe(error.get('code', '-')), safe(error.get('message', '-')),
+                    safe(metadata.get('provider_name', '-')), safe(metadata.get('raw', '-')))
+            elif 200 <= status < 300:
+                actual = result.get('model', '-') if isinstance(result, dict) and label == 'SALUDO_MINIMO' else '-'
+                app.logger.warning('Luna PRUEBA_OPENROUTER prueba=%s http=%s resultado=OK modelo=%s', label, status, safe(actual))
+            else:
+                app.logger.warning('Luna PRUEBA_OPENROUTER prueba=%s http=%s formato_inesperado', label, status)
+        except Exception as error:
+            app.logger.warning('Luna PRUEBA_OPENROUTER prueba=%s fallo=%s', label, type(error).__name__)
+
+
+if os.environ.get('LUNA_OPENROUTER_DIAGNOSTIC', '').strip() == '1':
+    # One daemon per worker startup; no public diagnostic endpoint and no chat delay.
+    import threading
+    threading.Thread(target=_openrouter_startup_probe, name='luna-openrouter-probe', daemon=True).start()
 
 if __name__ == "__main__":
     app.run(
