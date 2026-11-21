@@ -25,7 +25,7 @@ PAGE = r"""
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Luna AI</title><meta name="luna-build" content="gemini-principal-20261121">
+<title>Luna AI</title><meta name="luna-build" content="respaldos-20261121">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&display=swap">
 <style>
 :root{color-scheme:dark;--bg:#07040f;--ln:rgba(var(--accrgb),.4);--vio:#a66bff;--cy:#35e1ff;--tx:#efe7ff;--mu:#a597c4;--acc1:#8a33f0;--acc2:#4a1a96;--accrgb:176,110,255;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1424,7 +1424,7 @@ def _gemini_answer(message, instrucciones, history=None, timeout=None):
 class OpenRouterUpstreamError(RuntimeError):
     def __init__(self, detail):
         self.detail = detail
-        super().__init__('OpenRouter: ' + detail['reason'])
+        super().__init__('Proveedor: ' + str(detail.get('reason', detail.get('code', 'provider_error'))))
 
 
 def _safe_model_name(value):
@@ -1471,7 +1471,7 @@ def _openrouter_error_details(payload=None, status=None, raw_body=None):
         text = ' '.join(m for m in messages if isinstance(m,str)).lower()
         patterns = (
             ('creditos_insuficientes',('insufficient credits','more credits','negative credit','insufficient balance')),
-            ('limite_de_gasto',('budget','spending limit','credit limit')),
+            ('limite_de_gasto',('budget','spending limit','credit limit','key limit exceeded','total limit')),
             ('bloqueo_de_region',('not available in your region','region is not supported','country is not supported','geographic')),
             ('modelo_o_proveedor_restringido',('not allowed','not permitted','allowlist','blocked model','blocked provider','does not have access')),
             ('filtro_de_solicitud',('flagged','moderation','content filter','prompt injection','content policy')),
@@ -1498,14 +1498,21 @@ def _openrouter_error_reason(error):
     except OSError:return 'cuerpo_no_disponible'
 
 
-def _openrouter_answer(message, instrucciones, history=None, timeout=None):
+def _openrouter_free_model(value=None):
+    model = (os.environ.get("OPENROUTER_MODEL", "") if value is None else value).strip()
+    # Only explicitly selected free variants, never an implicit paid fallback.
+    return model if re.fullmatch(r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+:free", model) else ""
+
+
+def _openrouter_answer(message, instrucciones, history=None, timeout=None, model_override=None):
     key = os.environ.get("OPENROUTER_API_KEY", "").strip()
     if not key:
         raise RuntimeError("OpenRouter sin clave configurada")
-    if not os.environ.get("OPENROUTER_MODEL", "").strip():
-        raise RuntimeError("OpenRouter sin modelo configurado")
+    model = _openrouter_free_model(model_override)
+    if not model:
+        raise RuntimeError("OpenRouter requiere un modelo gratuito explicito terminado en :free")
     payload = {
-        "model": (os.environ.get("OPENROUTER_MODEL", "").strip()),
+        "model": model,
         "messages": [{"role": "system", "content": instrucciones}] + _history_messages(history) + [{"role": "user", "content": message}],
         "max_tokens": 1800,
     }
@@ -1529,14 +1536,15 @@ def _openrouter_answer(message, instrucciones, history=None, timeout=None):
         except OSError:
             detail = _openrouter_error_details(status=error.code)
             detail['reason'] = 'cuerpo_no_disponible'
+        detail["requested_model"] = _safe_model_name(model)
         raise OpenRouterUpstreamError(detail) from None
     if isinstance(result.get("error"), dict):
-        raise OpenRouterUpstreamError(_openrouter_error_details(result))
+        raise OpenRouterUpstreamError({**_openrouter_error_details(result), "requested_model": _safe_model_name(model)})
     choices = result.get("choices") or []
     if not choices:
         raise ValueError("OpenRouter no devolvió respuestas")
     if isinstance(choices[0].get("error"), dict):
-        raise OpenRouterUpstreamError(_openrouter_error_details({"error": choices[0]["error"]}))
+        raise OpenRouterUpstreamError({**_openrouter_error_details({"error": choices[0]["error"]}), "requested_model": _safe_model_name(model)})
     content = choices[0].get("message", {}).get("content", "")
     if isinstance(content, list):
         answer = "".join(
@@ -1553,8 +1561,66 @@ def _openrouter_answer(message, instrucciones, history=None, timeout=None):
         "reply": answer,
         "brain": "OpenRouter",
         "requested_model": payload["model"],
-        "model": result.get("model", os.environ.get("OPENROUTER_MODEL", "").strip()),
+        "model": result.get("model", model),
     }
+
+
+def _groq_model():
+    model = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b").strip()
+    return model if model in ("openai/gpt-oss-120b", "openai/gpt-oss-20b") else ""
+
+
+def _openrouter_models():
+    primary = _openrouter_free_model()
+    if not primary:
+        return []
+    extra = os.environ.get("OPENROUTER_FALLBACK_MODELS", "inclusionai/ling-3.2-flash:free")
+    models=[]
+    for value in [primary]+extra.split(","):
+        model = _openrouter_free_model(value)
+        if model and model not in models:
+            models.append(model)
+    return models[:2]
+
+
+def _groq_answer(message, instrucciones, history=None, timeout=None):
+    key = os.environ.get("GROQ_API_KEY", "").strip()
+    model = _groq_model()
+    if not key or not model:
+        raise RuntimeError("Groq sin clave o modelo admitido")
+    payload = {"model":model, "messages":[{"role":"system","content":instrucciones}]+_history_messages(history)+[{"role":"user","content":message}],
+               "max_completion_tokens":1800, "response_format":{"type":"json_object"}}
+    req = Request("https://api.groq.com/openai/v1/chat/completions", data=json.dumps(payload).encode("utf-8"),
+                  headers={"Authorization":"Bearer "+key,"Content-Type":"application/json"}, method="POST")
+    try:
+        with urlopen(req, timeout=timeout if timeout is not None else 20) as response:
+            result=json.load(response)
+    except HTTPError as error:
+        detail=_failure_detail("Groq",error)
+        detail["requested_model"]=_safe_model_name(model)
+        # Classify only; never log the body, which may echo the prompt.
+        try:
+            body=json.loads(error.read(16384))
+            reason=str(body.get("error",{}).get("message","")).lower() if isinstance(body,dict) and isinstance(body.get("error"),dict) else ""
+            if 'request too large' in reason or 'tokens per minute' in reason:
+                detail['reason']='cupo_de_tokens'
+            elif 'quota' in reason or 'rate limit' in reason:
+                detail['reason']='cupo_de_solicitudes'
+        except (ValueError,OSError):
+            pass
+        raise OpenRouterUpstreamError(detail) from None
+    if not isinstance(result,dict) or result.get("error"):
+        raise ValueError("Groq: respuesta no valida")
+    choices=result.get("choices") or []
+    if not choices or not isinstance(choices[0],dict):
+        raise ValueError("Groq: respuesta vacia")
+    item=choices[0].get("message") or {}
+    if item.get("refusal"):
+        raise ValueError("CONTENT_FILTER")
+    content=item.get("content")
+    if not isinstance(content,str) or not content.strip():
+        raise ValueError("Groq: respuesta vacia")
+    return {"reply":content.strip(),"brain":"Groq","requested_model":model,"model":result.get("model") or model}
 
 
 def _claude_answer(message, instrucciones, history=None, timeout=None):
@@ -2126,7 +2192,7 @@ def _dialogue_response(raw, character):
 
 @app.get("/api/version")
 def version():
-    return jsonify(build="gemini-principal-20261121")
+    return jsonify(build="respaldos-20261121")
 
 def _scene_text(value):
     return str(value or "").casefold().translate(str.maketrans("áéíóúüñ", "aeiouun"))
@@ -2403,6 +2469,55 @@ def _failure_detail(name, error):
     return detail
 
 
+def _request_with_recovery(name, provider, message, instructions, history, deadline, failures, request_id):
+    # One retry only for temporary service failures; never for restrictions or quota.
+    for attempt in (1, 2):
+        remaining = deadline - time.monotonic()
+        if remaining < 1:
+            raise TimeoutError("REQUEST_BUDGET_EXHAUSTED")
+        try:
+            return provider(message, instructions, history, timeout=min(20.0, remaining))
+        except (HTTPError, URLError, TimeoutError, RuntimeError) as error:
+            detail = _failure_detail(name, error)
+            status = detail.get("http_status")
+            can_retry = attempt == 1 and status in (502, 503, 504) and deadline-time.monotonic() > 4
+            if not can_retry:
+                raise
+            # Respect longer Retry-After by trying another provider instead of retrying early.
+            if isinstance(error, HTTPError):
+                retry_after = error.headers.get("Retry-After") if error.headers else None
+                if retry_after:
+                    try:
+                        if float(retry_after) > 1:
+                            raise error
+                    except ValueError:
+                        raise error
+            detail.update(attempt=1, automatic_retry=True)
+            failures.append(detail)
+            app.logger.warning("Luna request=%s proveedor=%s http=%s reintento_automatico=1", request_id, name, status)
+            time.sleep(0.6)
+
+
+def _failure_summary(failures):
+    labels = {'upstream_unavailable':'servicio no disponible', 'connection_or_timeout':'conexion o tiempo de espera',
+              'rate_limit':'cupo de solicitudes', 'credentials':'clave o permiso', 'payment_or_access':'saldo o acceso',
+              'openrouter_forbidden':'acceso denegado', 'invalid_response':'respuesta vacia o formato incorrecto',
+              'provider_blocked':'el proveedor no genero respuesta', 'request_or_model':'modelo o solicitud no admitida',
+              'provider_error':'fallo del proveedor'}
+    summaries=[]
+    for failure in failures:
+        # Only fixed server labels, never arbitrary upstream messages or chat content.
+        name = failure.get('provider')
+        if name not in ('Gemini','Groq','OpenRouter','Claude','GPT'):
+            continue
+        label=labels.get(failure.get('code'),'fallo del proveedor')
+        if failure.get('reason')=='limite_de_gasto':label='limite de gasto de la clave'
+        status=failure.get('http_status')
+        line=name+': '+label+(' ('+str(status)+')' if isinstance(status,int) else '')
+        if line not in summaries:summaries.append(line)
+    return '; '.join(summaries)
+
+
 def _chat_failure(failures, request_id):
     codes = {f['code'] for f in failures}
     if not failures:
@@ -2419,7 +2534,10 @@ def _chat_failure(failures, request_id):
         code, text = 'provider_blocked', 'El proveedor no generó una respuesta para esta solicitud.'
     else:
         code, text = 'providers_unavailable', 'No pude completar la respuesta: fallaron los proveedores configurados. Puedes revisar el diagnóstico o reintentar.'
-    return jsonify(error=text, error_code=code, request_id=request_id, attempts=failures, retryable=any(f['retryable'] for f in failures)), 503
+    summary = _failure_summary(failures)
+    if summary:
+        text += " Detalle: " + summary + "."
+    return jsonify(error=text, error_code=code, request_id=request_id, attempts=failures, build="respaldos-20261121", retryable=any(f['retryable'] for f in failures)), 503
 
 
 @app.post("/api/chat")
@@ -2460,7 +2578,7 @@ def chat():
         silent.update(brain='Escena local', model=None, requested_brain='OpenRouter' if preference == 'openrouter' else 'Gemini',
                       preferred_brain='OpenRouter' if preference == 'openrouter' else 'Gemini', routing_attempts=[],
                       chat_mode=chat_mode or ('role' if preference == 'openrouter' else 'normal'),
-                      request_id=uuid.uuid4().hex[:12], build='gemini-principal-20261121')
+                      request_id=uuid.uuid4().hex[:12], build='respaldos-20261121')
         return jsonify(silent)
     history = _knowledge_context(data, character, message)
     candidate_memory = data.get("memory")
@@ -2528,6 +2646,7 @@ def chat():
     )
     providers = {
         "gemini": ("Gemini", "GEMINI_API_KEY", _gemini_answer),
+        "groq": ("Groq", "GROQ_API_KEY", _groq_answer),
         "openrouter": ("OpenRouter", "OPENROUTER_API_KEY", _openrouter_answer),
         "claude": ("Claude", "ANTHROPIC_API_KEY", _claude_answer),
         "openai": ("GPT", "OPENAI_API_KEY", _openai_answer),
@@ -2536,20 +2655,42 @@ def chat():
     if not isinstance(preference, str) or preference not in providers:
         preference = "gemini"
     keys = [preference] + [key for key in providers if key != preference]
-    enabled = [providers[key] for key in keys if os.environ.get(providers[key][1], "").strip() and (key != "openrouter" or os.environ.get("OPENROUTER_MODEL", "").strip())]
+    enabled=[]
+    allow_paid = os.environ.get("LUNA_ALLOW_PAID_BACKUPS", "").strip() == "1"
+    for key in keys:
+        name, env_key, provider = providers[key]
+        if not os.environ.get(env_key, "").strip():
+            continue
+        if key in ("claude","openai") and not allow_paid:
+            continue
+        if key == "groq" and not _groq_model():
+            continue
+        if key == "openrouter":
+            for model in _openrouter_models():
+                def selected(*args, _model=model, **kwargs):
+                    return _openrouter_answer(*args,model_override=_model,**kwargs)
+                enabled.append((name,env_key,selected))
+        else:
+            enabled.append((name,env_key,provider))
     request_id = uuid.uuid4().hex[:12]
     failures = []
     if not enabled:
         return _chat_failure(failures, request_id)
+    deadline = time.monotonic() + 27.0
+    unavailable_accounts=set()
     for name, _, provider in enabled:
+        if name in unavailable_accounts:
+            continue
+        if deadline-time.monotonic() < 1:
+            break
         try:
             turn_started = time.monotonic()
-            response = provider(message, instructions, _style_examples(character) + history)
+            response = _request_with_recovery(name, provider, message, instructions, _style_examples(character) + history, deadline, failures, request_id)
             response.update(_dialogue_response(response["reply"], character))
             if event == "departure":
                 plan = response.get("absence_plan") or {}
                 response["absence_plan"] = {"return_after_minutes": max(5, min(1440, int(plan.get("return_after_minutes", 90)))), "destination": str(plan.get("destination", "un recado"))[:120]}
-            response = _ensure_scene_opening(provider, response, instructions, message, history, character, max(0.0, 25.0 - (time.monotonic() - turn_started)))
+            response = _ensure_scene_opening(provider, response, instructions, message, history, character, max(0.0, deadline - time.monotonic()))
             if isinstance(response.get("memory"), dict):
                 response["memory"].update(knowledge_version=2, known_by=[character])
             response["chat_mode"] = chat_mode or ("role" if preference == "openrouter" else "normal")
@@ -2557,11 +2698,13 @@ def chat():
             response["routing_attempts"] = failures
             response["preferred_brain"] = enabled[0][0]
             response["request_id"] = request_id
-            response["build"] = "gemini-principal-20261121"
+            response["build"] = "respaldos-20261121"
             return jsonify(response)
         except (HTTPError, URLError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError) as error:
             detail = _failure_detail(name, error)
             failures.append(detail)
+            if detail.get("http_status") in (401,402,403,429):
+                unavailable_accounts.add(name)
             app.logger.warning("Luna request=%s proveedor=%s code=%s http=%s motivo=%s model=%s tipo=%s upstream=%s", request_id, name, detail["code"], detail.get("http_status", "-"), detail.get("reason", "-"), detail.get("requested_model", "-"), detail.get("upstream_type", "-"), detail.get("upstream_provider", "-"))
     return _chat_failure(failures, request_id)
 
@@ -2631,7 +2774,7 @@ def speak():
 def _openrouter_startup_probe():
     """Opt-in isolated probe. Never receives chat, history, or character prompts."""
     key = os.environ.get('OPENROUTER_API_KEY', '').strip()
-    model = os.environ.get('OPENROUTER_MODEL', '').strip()
+    model = _openrouter_free_model()
     def safe(value):
         text = str(value)
         if key:
@@ -2642,7 +2785,7 @@ def _openrouter_startup_probe():
         app.logger.warning('Luna PRUEBA_OPENROUTER clave_ausente')
         return
     if not model:
-        app.logger.warning('Luna PRUEBA_OPENROUTER desactivada_sin_modelo')
+        app.logger.warning('Luna PRUEBA_OPENROUTER desactivada_sin_modelo_gratuito')
         return
     tests = [
         ('ACCESO_CLAVE', 'https://openrouter.ai/api/v1/key', None),
