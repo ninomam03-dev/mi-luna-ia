@@ -25,7 +25,7 @@ PAGE = r"""
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Luna AI</title><meta name="luna-build" content="deshacer-20261121">
+<title>Luna AI</title><meta name="luna-build" content="reaccion-explicita-20261121">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&display=swap">
 <style>
 :root{color-scheme:dark;--bg:#07040f;--ln:rgba(var(--accrgb),.4);--vio:#a66bff;--cy:#35e1ff;--tx:#efe7ff;--mu:#a597c4;--acc1:#8a33f0;--acc2:#4a1a96;--accrgb:176,110,255;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1962,6 +1962,44 @@ def _extract_private_reaction(text, character):
     return clean, reaction
 
 
+
+def _explicit_silent_reaction(message, character):
+    """Only a whole, explicit laugh/cry stage direction; never infer from a topic."""
+    if not isinstance(message, str) or len(message) > 400:
+        return None
+    text = message.strip()
+    if text.startswith('*') and text.endswith('*'):
+        text = text.strip('*').strip()
+    if any(c in text for c in ('*', '¿', '?', '"', '“', '”', ':', '[', ']')):
+        return None
+    norm = _scene_text(text)
+    names = {'dracona': ('Draconia', r'draconia|dracona|nia'), 'rem': ('Aurora', r'aurora|rory|rem'), 'luna': ('Luna', r'luna')}
+    name, aliases = names[character]
+    match = re.fullmatch(r'(?:noto que |veo que |observo que )?(?:ella(?: ella)?|'+aliases+r')\s+(.+?)[.!]*', norm)
+    if not match:
+        return None
+    action = match[1].strip().rstrip('.!')
+    # An explicit invitation to speak overrides the silent direction.
+    stripped = re.sub(r'no (?:me |te )?(?:dice nada|responde|habla)', '', action)
+    if re.search(r'\b(?:dice|diga|diciendo|habla|hable|responde|responda|contesta|conteste|pregunta|pregunte|cuenta|cuente|explica|explique|susurra|susurre)\b', stripped):
+        return None
+    if re.search(r'\b(?:no|nunca|tampoco)\s+(?:se rie|llora|solloza|empieza|comienza|sigue|continua)|\b(?:si|quizas|tal vez|ojala|podria|parece|imagino|recuerdo|antes|ayer)\b', action):
+        return None
+    emotion = 'sad' if re.search(r'\b(?:llorar|llora|llorando|sollozar|solloza|sollozando)\b', action) else 'affection' if re.search(r'\b(?:rie|riendo|reir|carcajada|carcajadas|abraza)\b', action) else 'neutral'
+    start = r'(?:(?:ve|observa) lo que (?:esta pasando|pasa|ocurre) y )?'
+    verb = r'(?:se rie(?: a carcajadas)?|suelta una carcajada|(?:empieza|comienza|se pone) a (?:llorar|sollozar|reir)|(?:sigue|continua) (?:llorando|sollozando|riendo)|llora|solloza|no (?:me )?dice nada|no habla|guarda silencio|se queda (?:callada|en silencio)|me abraza)'
+    tail = r'(?:\s+(?:simplemente|suavemente|en silencio|sin decir nada|sin hablar|a carcajadas|contra mi pecho|en mi pecho|sobre mi pecho|en mis brazos|contra mi hombro|sin decir una palabra))*'
+    component = r'(?:(?:solo|simplemente) )?'+verb+tail
+    if not re.fullmatch(start+component+r'(?: y (?:luego |despues )?'+component+r')*', action):
+        return None
+    # Use the user's established action, with second-person references for display.
+    original = re.sub(r'^(?:noto que |veo que |observo que )?(?:ella(?: ella)?|'+aliases+r')\s+', '', text, flags=re.I).rstrip('.!')
+    original = re.sub(r'\bme\b', 'te', original, flags=re.I)
+    original = re.sub(r'\bmis\b', 'tus', original, flags=re.I)
+    original = re.sub(r'\bmi\b', 'tu', original, flags=re.I)
+    return {'reply': '', 'scene_action': name+' '+original+'.', 'scene_emotion': emotion, 'reaction_only': True, 'gesture': None}
+
+
 def _dialogue_response(raw, character):
     text = raw.strip()
     structured = text
@@ -2033,7 +2071,7 @@ def _dialogue_response(raw, character):
 
 @app.get("/api/version")
 def version():
-    return jsonify(build="deshacer-20261121")
+    return jsonify(build="reaccion-explicita-20261121")
 
 def _scene_text(value):
     return str(value or "").casefold().translate(str.maketrans("áéíóúüñ", "aeiouun"))
@@ -2344,6 +2382,14 @@ def chat():
         return jsonify(error="La narración privada no solicita respuesta del personaje."), 400
     if not message:
         message = "[Control: no hubo palabras audibles; toma una iniciativa propia sin atribuir palabras al interlocutor.]"
+    silent = _explicit_silent_reaction(message, character) if not event else None
+    if silent:
+        preference = ('openrouter' if chat_mode == 'role' else 'gemini') if chat_mode else data.get('model_preference', 'gemini')
+        silent.update(brain='Escena local', model=None, requested_brain='OpenRouter' if preference == 'openrouter' else 'Gemini',
+                      preferred_brain='OpenRouter' if preference == 'openrouter' else 'Gemini', routing_attempts=[],
+                      chat_mode=chat_mode or ('role' if preference == 'openrouter' else 'normal'),
+                      request_id=uuid.uuid4().hex[:12], build='reaccion-explicita-20261121')
+        return jsonify(silent)
     history = _knowledge_context(data, character, message)
     candidate_memory = data.get("memory")
     scoped = isinstance(candidate_memory, dict) and candidate_memory.get("knowledge_version") == 2 and character in candidate_memory.get("known_by", [])
@@ -2438,7 +2484,7 @@ def chat():
             response["routing_attempts"] = failures
             response["preferred_brain"] = enabled[0][0]
             response["request_id"] = request_id
-            response["build"] = "deshacer-20261121"
+            response["build"] = "reaccion-explicita-20261121"
             return jsonify(response)
         except (HTTPError, URLError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError) as error:
             detail = _failure_detail(name, error)
