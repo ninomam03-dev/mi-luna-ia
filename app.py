@@ -25,7 +25,7 @@ PAGE = r"""
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Luna AI</title><meta name="luna-build" content="silencio-ampliado-20261121">
+<title>Luna AI</title><meta name="luna-build" content="iniciativa-continua-20261121">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&display=swap">
 <style>
 :root{color-scheme:dark;--bg:#07040f;--ln:rgba(var(--accrgb),.4);--vio:#a66bff;--cy:#35e1ff;--tx:#efe7ff;--mu:#a597c4;--acc1:#8a33f0;--acc2:#4a1a96;--accrgb:176,110,255;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -311,7 +311,7 @@ button,summary,select{transition:background .2s,border-color .2s,box-shadow .2s}
  <canvas class="pc" id="eq" data-k="eq"></canvas>
 <div id="rhythm-tools" style="max-width:900px;margin:5px auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button type="button" id="rhythm-hold" aria-pressed="false">Seguir escribiendo</button><button type="button" id="rhythm-release" hidden>Dejarla responder</button><span id="rhythm-note" role="status" style="font-size:11px;color:var(--mu)"></span></div>
  <div class="composer-top"><span class="composer-hint" id="scene-indicator" role="status">Conversación compartida</span><details id="scene-tools"><summary aria-label="Opciones de escena">✧ &nbsp; Opciones de escena</summary>
- <div id="scene-controls"><div class="panel-heading"><b>A tu ritmo</b><small>Elige cómo continúa la escena</small></div><label class="scene-mode-label">Tipo de conversación<select id="chat-kind" aria-label="Tipo de conversación"><option value="normal">Chat normal</option><option value="role">Rol</option></select></label><label class="scene-mode-label">Modo de escena<select id="scene-mode" aria-label="Modo de escena"><option value="chat">Conversar</option><option value="solo">Narrar a solas</option><option value="sleep">Descansando</option></select></label><button type="button" id="scene-start">Ella empieza</button><button type="button" id="scene-sleep">Descansar</button><label><input type="checkbox" id="scene-welcome"> Saludo al abrir</label><label class="scene-wake-label">Despertar<input type="time" id="scene-wake" value="07:00" aria-label="Hora de despertar"></label><label class="scene-mode-label">Avanzar tiempo de la historia (minutos)<input id="story-minutes" type="number" min="1" max="1440" value="60" aria-label="Minutos narrativos"></label><button id="story-advance" type="button" style="grid-column:1/-1">Avanzar reloj narrativo</button><button type="button" id="knowledge-review" style="grid-column:1/-1">Revisar conocimiento y archivo</button><span id="scene-note" role="status"></span></div></details></div>
+ <div id="scene-controls"><div class="panel-heading"><b>A tu ritmo</b><small>Elige cómo continúa la escena</small></div><label class="scene-mode-label">Tipo de conversación<select id="chat-kind" aria-label="Tipo de conversación"><option value="normal">Chat normal</option><option value="role">Rol</option></select></label><label class="scene-mode-label">Modo de escena<select id="scene-mode" aria-label="Modo de escena"><option value="chat">Conversar</option><option value="solo">Narrar a solas</option><option value="sleep">Descansando</option></select></label><button type="button" id="scene-start">Ella empieza</button><button type="button" id="scene-lead-stop" hidden>Volver a iniciativa compartida</button><button type="button" id="scene-sleep">Descansar</button><label><input type="checkbox" id="scene-welcome"> Saludo al abrir</label><label class="scene-wake-label">Despertar<input type="time" id="scene-wake" value="07:00" aria-label="Hora de despertar"></label><label class="scene-mode-label">Avanzar tiempo de la historia (minutos)<input id="story-minutes" type="number" min="1" max="1440" value="60" aria-label="Minutos narrativos"></label><button id="story-advance" type="button" style="grid-column:1/-1">Avanzar reloj narrativo</button><button type="button" id="knowledge-review" style="grid-column:1/-1">Revisar conocimiento y archivo</button><span id="scene-note" role="status"></span></div></details></div>
  <p id="narrative-note" role="status" style="max-width:900px;margin:5px auto;font-size:10px;color:var(--mu)"></p><button id="return-retry" type="button" hidden>Reintentar regreso</button>
  <p id="audio-note" role="status" hidden style="max-width:900px;margin:5px auto;font-size:10px;color:var(--mu)"></p>
  <form id="f"><button type="button" id="mic" aria-pressed="false" aria-label="Micrófono"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3m-4 0h8"/></svg></button><input id="q" maxlength="4000" placeholder="Escríbele a Luna…" autocomplete="off"><button type="submit" aria-label="Enviar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 14-8-4 16-3-6-7-2Zm7 2 7-10"/></svg></button></form>
@@ -335,7 +335,7 @@ function returnClockDelay(text,minutes){const t=normalizeTimeText(text),m=t.matc
 
 function existingDeparture(character){for(const turn of conversations[character].slice(-8).reverse()){if(turn.role!=='assistant')continue;const text=normalizeTimeText(turn.content);if(/\b(si salgo|si me voy|no voy a salir|no salgo|quizas salga|tal vez salga)\b/.test(text))continue;if(/ya (?:volvi|regrese|estoy en casa)|he vuelto/.test(text))return null;if(/\b(contigo|juntos|vamos)\b/.test(text))continue;if(/\b(vuelvo|volvere|regreso|regresare|tardare|voy a salir|salgo|me voy)\b/.test(text)){const minutes=durationMinutes(text);if(minutes)return {return_after_minutes:minutes,destination:'el recado que anunció'};const delay=returnClockDelay(text,timeline(character).minutes);if(delay!==null)return {return_after_minutes:delay,destination:'el recado que anunció'};}}return null;}
 function installDeparture(character,plan){const r=timeline(character),duration=Math.max(5,Math.min(1440,Math.round(Number(plan?.return_after_minutes)||90)));saveTimeline(character,{phase:'away',startedAt:r.minutes,returnAt:r.minutes+duration,destination:typeof plan?.destination==='string'?plan.destination.slice(0,120):'un recado',note:'',attemptedAt:0});}
-function requestInitiative(){const r=timeline();if(r.phase==='away'){saveTimeline(cur,{minutes:Math.max(r.minutes,r.returnAt),note:'Salto hasta su regreso.',attemptedAt:0});return ask('',null,{kind:'return'});}return ask('',null,{kind:'initiative'});}
+function requestInitiative(){const r=timeline();if(r.phase==='away'){saveTimeline(cur,{minutes:Math.max(r.minutes,r.returnAt),note:'Salto hasta su regreso.',attemptedAt:0});return ask('',null,{kind:'return',lead:true});}return ask('',null,{kind:'initiative'});}
 async function beginSolo(character=cur){cancelFollowup(character);stopVoice();saveSceneSettings(character,{mode:'solo',lastActive:Date.now()});if(timeline(character).phase==='away')return;const announced=existingDeparture(character);if(announced){installDeparture(character,announced);return;}await ask('',null,{kind:'departure'});}
 function advanceNarrative(text,character){const amount=narrativeDuration(text);if(amount){const r=timeline(character);saveTimeline(character,{minutes:r.minutes+amount.minutes,note:(amount.estimated?'Salto estimado de ficción: ':'Salto narrado: ')+amount.minutes+' min.',attemptedAt:0});}else saveTimeline(character,{note:'Sin salto de tiempo identificado. Puedes indicar una duración o avanzar el reloj.'});setTimeout(()=>maybeNarrativeReturn(character),0);}
 async function maybeNarrativeReturn(character=cur,force=false){if(rhythmDraft(character).holding)return;const r=timeline(character);if(character!==cur||document.hidden||document.querySelector('.turn-editor,dialog[open]')||sceneSettings(character).mode==='sleep'||busy.has(character)||$('#q').value.trim()||state==='speaking'||state==='thinking'||r.phase!=='away'||r.minutes<r.returnAt||r.attemptedAt&&!force)return;saveTimeline(character,{attemptedAt:Date.now()});await ask('',null,{kind:'return'});}
@@ -855,9 +855,9 @@ $('#q').addEventListener('input',()=>cancelFollowup(cur));
 
 const sceneControlKey='luna.scenecontrol.v1';
 function readSceneControls(){try{const v=JSON.parse(localStorage.getItem(sceneControlKey)||'{}');return v&&typeof v==='object'&&!Array.isArray(v)?v:{};}catch{return {};}}
-function sceneSettings(character=cur){const r=readSceneControls()[character]||{};return {mode:['chat','solo','sleep'].includes(r.mode)?r.mode:'chat',welcome:r.welcome!==false,wakeTime:/^\d{2}:\d{2}$/.test(r.wakeTime||'')?r.wakeTime:'07:00',sleptAt:Number(r.sleptAt)||0,wakeAt:Number(r.wakeAt)||0,sharedSleep:r.sharedSleep===true,lastGreeting:Number(r.lastGreeting)||0,lastActive:Number(r.lastActive)||0,lastAttempt:Number(r.lastAttempt)||0};}
+function sceneSettings(character=cur){const r=readSceneControls()[character]||{};return {mode:['chat','solo','sleep'].includes(r.mode)?r.mode:'chat',lead:r.lead===true,welcome:r.welcome!==false,wakeTime:/^\d{2}:\d{2}$/.test(r.wakeTime||'')?r.wakeTime:'07:00',sleptAt:Number(r.sleptAt)||0,wakeAt:Number(r.wakeAt)||0,sharedSleep:r.sharedSleep===true,lastGreeting:Number(r.lastGreeting)||0,lastActive:Number(r.lastActive)||0,lastAttempt:Number(r.lastAttempt)||0};}
 function saveSceneSettings(character,patch){const all=readSceneControls();all[character]={...sceneSettings(character),...patch};localStorage.setItem(sceneControlKey,JSON.stringify(all));if(character===cur)syncSceneControls();}
-function syncSceneControls(){syncChatMode();syncTimeline();const r=sceneSettings();$('#scene-indicator').textContent=r.mode==='solo'?'Narrando a solas · sin respuesta':r.mode==='sleep'?'Descansando · escena en pausa':'Conversación compartida';$('#scene-mode').value=r.mode;$('#scene-welcome').checked=r.welcome;$('#scene-wake').value=r.wakeTime;$('#scene-note').textContent=r.mode==='solo'?'Narración a solas: se guarda tu texto sin respuesta. Usa /juntos o Ella empieza para retomar.':r.mode==='sleep'?'Descansando: la escena de despertar podrá aparecer al volver a abrir después de la hora elegida.':'Conversación compartida. /solo · /juntos · /iniciativa · /dormir';}
+function syncSceneControls(){syncChatMode();syncTimeline();const r=sceneSettings();$('#scene-indicator').textContent=r.mode==='solo'?'Narrando a solas · sin respuesta':r.mode==='sleep'?'Descansando · escena en pausa':(r.lead?'Ella lleva la iniciativa':'Conversación compartida');$('#scene-lead-stop').hidden=!r.lead;$('#scene-start').setAttribute('aria-pressed',String(r.lead));$('#scene-mode').value=r.mode;$('#scene-welcome').checked=r.welcome;$('#scene-wake').value=r.wakeTime;$('#scene-note').textContent=r.mode==='solo'?'Narración a solas: se guarda tu texto sin respuesta. Usa /juntos o Ella empieza para retomar.':r.mode==='sleep'?'Descansando: la escena de despertar podrá aparecer al volver a abrir después de la hora elegida.':'Conversación compartida. /solo · /juntos · /iniciativa · /dormir';}
 function nextSceneMorning(now,time){const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'America/Santo_Domingo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(now)).map(p=>[p.type,p.value]));const [hh,mm]=time.split(':').map(Number);let wake=Date.UTC(+parts.year,+parts.month-1,+parts.day,hh+4,mm);if(wake<=now)wake+=86400000;return Math.max(wake,now+4*3600000);}
 function markSceneSleep(character,text='',now=Date.now()){const r=sceneSettings(character);saveSceneSettings(character,{mode:'sleep',sleptAt:now,wakeAt:nextSceneMorning(now,r.wakeTime),sharedSleep:r.mode!=='solo'&&/\b(nos (?:quedamos|vamos|acostamos|dormimos)|ambos|los dos|dormimos juntos|misma cama|a tu lado|a mi lado|volvemos a quedarnos)\b/i.test(text),lastActive:now});cancelFollowup(character);}
 function sceneCommand(q){const t=q.trim();if(/^\/?(?:solo|retomo el rol yo solo|retomo el rol a solas|sigo el rol yo solo)$/i.test(t.replace(/^\*+|\*+$/g,'')))return {mode:'solo',text:''};const m=t.match(/^\/(solo|juntos|iniciativa|dormir)(?:\s+([\s\S]+))?$/i);if(m)return {mode:m[1].toLowerCase()==='juntos'?'chat':m[1].toLowerCase(),text:m[2]||''};if(/^\*?(?:ella toma la iniciativa(?: del rol)?|que ella empiece el rol)\*?$/i.test(t))return {mode:'iniciativa',text:''};return null;}
@@ -868,6 +868,7 @@ $('#scene-mode').onchange=e=>{cancelFollowup(cur);stopVoice();setState('idle');i
 $('#scene-welcome').onchange=e=>saveSceneSettings(cur,{welcome:e.target.checked});
 $('#scene-wake').onchange=e=>{if(!/^\d{2}:\d{2}$/.test(e.target.value))return;const patch={wakeTime:e.target.value};if(sceneSettings().mode==='sleep')patch.wakeAt=nextSceneMorning(sceneSettings().sleptAt,e.target.value);saveSceneSettings(cur,patch);};
 $('#scene-start').onclick=()=>requestInitiative();
+$('#scene-lead-stop').onclick=()=>{if(busy.has(cur))return;cancelFollowup(cur);saveSceneSettings(cur,{lead:false});};
 $('#scene-sleep').onclick=()=>{markSceneSleep(cur,conversations[cur].slice(-6).filter(t=>t.role==='user'&&!t.private_scene).map(t=>t.content).join(' '));stopVoice();setState('idle');};
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(maybeSceneWelcome,800);});
 setInterval(maybeSceneWelcome,60000);
@@ -898,7 +899,7 @@ async function askStored(q,character,edit=null,event=null){
    if(event.kind==='welcome'&&(!settings.welcome||settings.mode!=='chat'||now-settings.lastGreeting<6*3600000||(last&&now-last<30*60000)))return;
   }
   if(event.kind==='return'&&(timeline(character).phase!=='away'||timeline(character).minutes<timeline(character).returnAt))return;
-  event={kind:event.kind,shared_sleep:settings.sharedSleep};saveSceneSettings(character,{lastAttempt:now});
+  event={kind:event.kind,lead:event.lead===true,shared_sleep:settings.sharedSleep};saveSceneSettings(character,{lastAttempt:now});
  }
  const closesSleep=!event&&!edit&&saysSceneSleep(q);if(closesSleep)markSceneSleep(character,q);
  const localOnly=closesSleep||event?.kind==='local'||(!event&&!edit&&['solo','sleep'].includes(settings.mode));
@@ -932,7 +933,7 @@ async function askStored(q,character,edit=null,event=null){
  setState('thinking');
  try{
   const response=await fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({message:q,event:event?.kind||null,shared_sleep:event?.shared_sleep===true,character,mood:currentMood(character),history,narrative:narrativeStore().entries,memory:actorMemory(character),available_gestures:Object.keys(reactions[character]).filter(id=>availableClip(id,false)),chat_mode:chatMode(character),model_preference:preferredProvider(character),narrative_clock:timeline(character).minutes,absence_plan:{return_after_minutes:Math.max(5,timeline(character).returnAt-timeline(character).startedAt),destination:timeline(character).destination}})});
+   body:JSON.stringify({message:q,event:event?.kind||null,shared_sleep:event?.shared_sleep===true,character_leads:settings.lead===true||event?.lead===true||event?.kind==='initiative',character,mood:currentMood(character),history,narrative:narrativeStore().entries,memory:actorMemory(character),available_gestures:Object.keys(reactions[character]).filter(id=>availableClip(id,false)),chat_mode:chatMode(character),model_preference:preferredProvider(character),narrative_clock:timeline(character).minutes,absence_plan:{return_after_minutes:Math.max(5,timeline(character).returnAt-timeline(character).startedAt),destination:timeline(character).destination}})});
   const result=await response.json().catch(()=>({error:'El servidor no devolvió una respuesta válida.',error_code:'invalid_gateway_response'}));
   if(!response.ok||typeof result.reply!=='string'||(!safeDialogue(result.reply)&&!(result.reaction_only===true&&result.reply===''&&cleanSceneAction(result.scene_action)&&!/^Pensamiento de\b/i.test(result.scene_action)))){const failure=new Error(result.error||'Respuesta con formato no válido.');failure.errorCode=result.error_code||('http_'+response.status);failure.requestId=result.request_id;throw failure;}
   result.scene_action=cleanSceneAction(result.scene_action)||splitPrivateReaction(result.reply,character).scene_action;
@@ -952,7 +953,7 @@ async function askStored(q,character,edit=null,event=null){
   archiveNarrative();conversations[character]=rotateHistory(conversations[character]);
   saveConversations();
   if(event?.kind==='departure'){installDeparture(character,{...result.absence_plan,return_after_minutes:durationMinutes(result.reply)||result.absence_plan?.return_after_minutes});saveSceneSettings(character,{mode:'solo',lastActive:acceptedAt});}
-  else if(event){if(event.kind==='return'||event.kind==='initiative'){const elapsed=Math.max(0,timeline(character).minutes-timeline(character).startedAt);saveTimeline(character,{phase:'home',returnAt:0,note:event.kind==='return'?'Ha regresado a la conversación tras '+elapsed+' min de historia.':'Ella ha tomado la iniciativa.',attemptedAt:0});}saveSceneSettings(character,{mode:'chat',lastGreeting:acceptedAt,lastActive:acceptedAt});}
+  else if(event){if(event.kind==='return'||event.kind==='initiative'){const elapsed=Math.max(0,timeline(character).minutes-timeline(character).startedAt);saveTimeline(character,{phase:'home',returnAt:0,note:event.kind==='return'?'Ha regresado a la conversación tras '+elapsed+' min de historia.':'Ella ha tomado la iniciativa.',attemptedAt:0});}saveSceneSettings(character,{mode:'chat',lead:settings.lead||event.kind==='initiative'||event.lead===true,lastGreeting:acceptedAt,lastActive:acceptedAt});}
   if(character===cur){
    showConversation();
    const line=spokenText(result.reply);
@@ -977,7 +978,7 @@ async function askStored(q,character,edit=null,event=null){
 const rhythmKey='luna.rhythm.v1';
 function rhythmDraft(character=cur){try{return JSON.parse(localStorage.getItem(rhythmKey)||'{}')[character]||{holding:false,text:''};}catch{return {holding:false,text:''};}}
 function saveRhythm(value,character=cur){let all={};try{all=JSON.parse(localStorage.getItem(rhythmKey)||'{}');}catch{}all[character]=value;localStorage.setItem(rhythmKey,JSON.stringify(all));syncRhythm();}
-function syncRhythm(){const r=rhythmDraft();for(const id of ['scene-mode','scene-start','scene-sleep','story-advance'])$('#'+id).disabled=r.holding;$('#rhythm-hold').setAttribute('aria-pressed',String(r.holding));$('#rhythm-hold').textContent=r.holding?'Añadir al borrador':'Seguir escribiendo';$('#rhythm-release').hidden=!r.holding;$('#rhythm-note').textContent=r.holding?(r.text?'Borrador guardado ('+r.text.length+'/4000): '+r.text.slice(-85):'Puedes enviar varias partes. Ella responderá cuando tú termines.') : '';}
+function syncRhythm(){const r=rhythmDraft();for(const id of ['scene-mode','scene-start','scene-lead-stop','scene-sleep','story-advance'])$('#'+id).disabled=r.holding;$('#rhythm-hold').setAttribute('aria-pressed',String(r.holding));$('#rhythm-hold').textContent=r.holding?'Añadir al borrador':'Seguir escribiendo';$('#rhythm-release').hidden=!r.holding;$('#rhythm-note').textContent=r.holding?(r.text?'Borrador guardado ('+r.text.length+'/4000): '+r.text.slice(-85):'Puedes enviar varias partes. Ella responderá cuando tú termines.') : '';}
 function collectRhythm(){const r=rhythmDraft(),q=$('#q').value.trim();const text=[r.text,q].filter(Boolean).join('\n\n');if(text.length>4000){$('#rhythm-note').textContent='El turno completo supera 4000 caracteres. Acorta el texto antes de continuar.';return false;}saveRhythm({holding:true,text});$('#q').value='';return true;}
 $('#rhythm-hold').onclick=()=>{if(busy.has(cur)||sceneSettings().mode!=='chat'){ $('#rhythm-note').textContent='Disponible al conversar, después de terminar la respuesta actual.';return;}cancelFollowup(cur);stopVoice();if(rhythmDraft().holding)collectRhythm();else{saveRhythm({holding:true,text:''});if($('#q').value.trim())collectRhythm();}};
 $('#rhythm-release').onclick=async()=>{if(busy.has(cur)||sceneSettings().mode!=='chat'||!collectRhythm())return;const r=rhythmDraft();if(!r.text)return;const character=cur;saveRhythm({holding:false,text:''},character);await ask(r.text);};
@@ -2123,7 +2124,7 @@ def _dialogue_response(raw, character):
 
 @app.get("/api/version")
 def version():
-    return jsonify(build="silencio-ampliado-20261121")
+    return jsonify(build="iniciativa-continua-20261121")
 
 def _scene_text(value):
     return str(value or "").casefold().translate(str.maketrans("áéíóúüñ", "aeiouun"))
@@ -2231,6 +2232,23 @@ def _ensure_scene_opening(provider, response, instructions, message, history, ch
     response["continuation_notice"] = "No pude preparar el inicio de la escena en este turno. Puedes intentarlo otra vez."
     return response
 
+
+
+def _continuous_initiative_instruction(enabled):
+    if not enabled:
+        return ""
+    return (
+        " DIRECCION DE ESCENA PERSISTENTE: llevas la iniciativa de esta escena. "
+        "En cada turno recoge lo que el interlocutor acaba de hacer o decir y, cuando encaje, "
+        "propón o realiza un siguiente paso propio y concreto: una actividad, un gesto, un tema "
+        "o un cambio natural de momento. No te limites a reaccionar ni preguntes constantemente "
+        "qué quiere hacer. Conserva tu personalidad y la continuidad, sin repetir ofrecimientos. "
+        "Avanza un momento cada vez y deja espacio para responder. No decidas las acciones, "
+        "sentimientos, palabras ni aceptación del interlocutor. Respeta sus límites y cambios de "
+        "dirección. Una indicación de silencio o reacción sin diálogo tiene prioridad en ese turno; "
+        "no la rompas para avanzar. No prometas mensajes espontáneos, temporizadores o acciones "
+        "futuras del sistema. Esta dirección no concede conocimiento de narraciones privadas. "
+    )
 
 
 def _scene_event_instruction(event, shared_sleep, now):
@@ -2440,7 +2458,7 @@ def chat():
         silent.update(brain='Escena local', model=None, requested_brain='OpenRouter' if preference == 'openrouter' else 'Gemini',
                       preferred_brain='OpenRouter' if preference == 'openrouter' else 'Gemini', routing_attempts=[],
                       chat_mode=chat_mode or ('role' if preference == 'openrouter' else 'normal'),
-                      request_id=uuid.uuid4().hex[:12], build='silencio-ampliado-20261121')
+                      request_id=uuid.uuid4().hex[:12], build='iniciativa-continua-20261121')
         return jsonify(silent)
     history = _knowledge_context(data, character, message)
     candidate_memory = data.get("memory")
@@ -2473,6 +2491,7 @@ def chat():
         + _initiative_instruction()
         + _scene_actor_instruction()
         + _scene_event_instruction(event, data.get("shared_sleep") is True, now)
+        + _continuous_initiative_instruction((data.get("character_leads") is True or event == "initiative") and event != "departure")
         + time_context
         + " Las muestras ficticias iniciales solo ilustran la voz: no ocurrieron, no las "
         "guardes en memory ni las confundas con el historial real. No copies sus frases literalmente. "
@@ -2536,7 +2555,7 @@ def chat():
             response["routing_attempts"] = failures
             response["preferred_brain"] = enabled[0][0]
             response["request_id"] = request_id
-            response["build"] = "silencio-ampliado-20261121"
+            response["build"] = "iniciativa-continua-20261121"
             return jsonify(response)
         except (HTTPError, URLError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError) as error:
             detail = _failure_detail(name, error)
