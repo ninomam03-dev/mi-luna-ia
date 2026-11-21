@@ -25,7 +25,7 @@ PAGE = r"""
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Luna AI</title><meta name="luna-build" content="respaldos-20261121">
+<title>Luna AI</title><meta name="luna-build" content="atuendo-fijado-20261121">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&display=swap">
 <style>
 :root{color-scheme:dark;--bg:#07040f;--ln:rgba(var(--accrgb),.4);--vio:#a66bff;--cy:#35e1ff;--tx:#efe7ff;--mu:#a597c4;--acc1:#8a33f0;--acc2:#4a1a96;--accrgb:176,110,255;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -298,6 +298,9 @@ button,summary,select{transition:background .2s,border-color .2s,box-shadow .2s}
   <summary>Vestuario y gestos</summary>
   <div class="preview-panel"><div class="panel-heading"><b>Tu estilo, su esencia</b><small>Vestuario y movimiento</small></div>
    <label>Atuendo<select id="outfitChoice"></select></label>
+   <button type="button" id="pinOutfit">Fijar este atuendo</button>
+   <button type="button" id="unpinOutfit" hidden>Quitar atuendo fijado</button>
+   <small id="outfit-pin-note" role="status" style="color:var(--mu);line-height:1.5"></small>
    <label>Animación<select id="gestureChoice"></select></label>
    <button type="button" id="playGesture">Reproducir gesto</button>
    <label><span><input type="checkbox" id="originalClip"> Incluir gestos con otro atuendo</span></label>
@@ -1096,6 +1099,7 @@ function setImg(url, onReady, onError){
  pending.src=url;
 }
 function showSelectedOutfit(){
+ syncPinnedOutfit();
  clearTimeout(gestureTimer);
  const c=CH[cur];
  syncGestures();
@@ -1127,10 +1131,22 @@ function addPoses(files){
  setMode('avatar');
 }
 document.querySelectorAll('#chars button').forEach(b=>b.onclick=()=>{cancelFollowup(cur);stopVoice();cur=b.dataset.c;setState(busy.has(cur)?'thinking':'idle');showConversation();document.querySelectorAll('#chars button').forEach(x=>x.setAttribute('aria-pressed',x===b));render();reveal()});
+
+const wardrobePrefsKey='luna.wardrobe.v1';
+function wardrobePrefs(character=cur){let all={};try{all=JSON.parse(localStorage.getItem(wardrobePrefsKey)||'{}')||{};}catch{}const value=all[character];return value&&typeof value==='object'?{pinned:typeof value.pinned==='string'?value.pinned:null,auto:value.auto!==false}:{pinned:null,auto:true};}
+function writeWardrobePrefs(character,patch){try{let all={};try{const stored=JSON.parse(localStorage.getItem(wardrobePrefsKey)||'{}');if(stored&&typeof stored==='object'&&!Array.isArray(stored))all=stored;}catch{}all[character]={...wardrobePrefs(character),...patch};localStorage.setItem(wardrobePrefsKey,JSON.stringify(all));syncPinnedOutfit();return true;}catch{$('#outfit-pin-note').textContent='No se pudo guardar la elección. Comprueba el espacio disponible del navegador.';return false;}}
+function hasPinnedOutfit(character=cur){const r=wardrobePrefs(character);return !!r.pinned&&CH[character].p.includes(r.pinned);}
+function syncPinnedOutfit(){const c=CH[cur],r=wardrobePrefs(),url=c.p[c.sel],pinned=hasPinnedOutfit();const button=$('#pinOutfit');button.disabled=!url||url.startsWith('blob:')||r.pinned===url;button.textContent=r.pinned===url?'Atuendo fijado':'Fijar este atuendo';$('#unpinOutfit').hidden=!r.pinned;$('#autoOutfit').disabled=pinned;$('#autoOutfit').checked=!pinned&&r.auto;$('#outfit-pin-note').textContent=url?.startsWith('blob:')?'Las imágenes cargadas con + son temporales. Para fijarlas deben formar parte de los atuendos de la aplicación.':pinned?(r.pinned===url?'Se conservará este atuendo al cerrar y volver a abrir. Los cambios automáticos están pausados.':'Estás viendo otro atuendo. Al volver a abrir se recuperará el fijado; pulsa Fijar este atuendo para sustituirlo.'):r.pinned?'El atuendo guardado ya no está disponible. Puedes fijar otro o quitar la elección anterior.':'Elige un atuendo y fíjalo para conservarlo al volver a abrir.';}
+$('#pinOutfit').onclick=()=>{const url=CH[cur].p[CH[cur].sel];if(url&&!url.startsWith('blob:'))writeWardrobePrefs(cur,{pinned:url});};
+$('#unpinOutfit').onclick=()=>writeWardrobePrefs(cur,{pinned:null});
+$('#autoOutfit').onchange=e=>writeWardrobePrefs(cur,{auto:e.target.checked});
+addEventListener('storage',e=>{if(e.key!==wardrobePrefsKey&&e.key!==null)return;for(const [character,c] of Object.entries(CH)){const pinned=wardrobePrefs(character).pinned;if(pinned&&c.p.includes(pinned))c.sel=c.p.indexOf(pinned);}showSelectedOutfit();syncWardrobe();});
+
 // Atuendo aleatorio al arrancar: cada personaje empieza en una pose distinta
 Object.entries(CH).forEach(([owner,c])=>{const choices=c.p.map((url,i)=>({url,i})).filter(v=>!wardrobeBath[owner].includes(v.url)&&!wardrobeProvocative[owner].includes(v.url));if(choices.length)c.sel=choices[Math.floor(Math.random()*choices.length)].i;});
 CH.luna.sel=CH.luna.p.indexOf('/static/characters/luna-vestido-jade-v5.png');
 CH.dracona.sel=CH.dracona.p.indexOf('/static/characters/dracona-camisa-anudada-v5.png');
+for(const [character,c] of Object.entries(CH)){const pinned=wardrobePrefs(character).pinned;if(pinned&&c.p.includes(pinned))c.sel=c.p.indexOf(pinned);}
 const reactions={"dracona": {"puchero": {"label": "Puchero", "url": "/static/characters/dracona-puchero.webp", "duration": 4630}, "mejilla-sonrojada": {"label": "Mejilla sonrojada", "url": "/static/characters/dracona_top_falda_puchero_cabello_largo-sonrojo-v2.webp", "duration": 4800}, "se-hace-la-indiferente": {"label": "Se hace la indiferente", "url": "/static/characters/dracona-se-hace-la-indiferente.webp", "duration": 4100}, "marca-distancia": {"label": "Marca distancia", "url": "/static/characters/dracona-marca-distancia-v3.webp", "duration": 4800}, "mirada-de-fastidio": {"label": "Mirada de fastidio", "url": "/static/characters/dracona-mirada-de-fastidio-v3.webp", "duration": 4800}, "accidente-con-harina": {"label": "Accidente con la batidora", "url": "/static/characters/dracona-accidente-con-harina.gif", "duration": 4710}, "espera": {"label": "Espera impaciente", "url": "/static/characters/dracona-espera-v3.webp", "duration": 4800}, "estornudo": {"label": "Estornudo", "url": "/static/characters/dracona-estornudo-v3.webp", "duration": 4800}}, "rem": {"sonrojo": {"label": "Sonrojo", "url": "/static/characters/aurora-sonrojo.webp", "duration": 4830}, "mirada-timida": {"label": "Mirada tímida", "url": "/static/characters/aurora-mirada-timida-v3.webp", "duration": 4800}, "juega-con-dedos": {"label": "Juega con los dedos", "url": "/static/characters/aurora-juega-con-dedos-v3.webp", "duration": 4800}, "se-tapa-la-cara": {"label": "Se tapa la cara", "url": "/static/characters/aurora-se-tapa-la-cara-v3.webp", "duration": 4800}, "se-esconde-en-la-manga": {"label": "Se esconde en la manga", "url": "/static/characters/aurora-se-esconde-en-la-manga.webp", "duration": 4100}, "accidente-con-harina": {"label": "Accidente con la batidora", "url": "/static/characters/aurora-accidente-con-harina.gif", "duration": 4710}, "lee": {"label": "Lee un libro", "url": "/static/characters/aurora-lee.gif", "duration": 4120}, "estornudo": {"label": "Estornudo", "url": "/static/characters/aurora-estornudo-v3.webp", "duration": 4800}}, "luna": {"agenda": {"label": "Revisa la agenda", "url": "/static/characters/luna-agenda.gif", "duration": 4120}, "bienvenida": {"label": "Saluda con la mano", "url": "/static/characters/luna-bienvenida.gif", "duration": 4120}, "sonrojo": {"label": "Sonrojo", "url": "/static/characters/luna-fusion-mitsuri-akeno-lunares-sonrojo-v2.webp", "duration": 4800}}};
 
 function syncWardrobe(){
@@ -1141,6 +1157,7 @@ function syncWardrobe(){
   return new Option(label,i);
  }));
  outfit.value=String(c.sel);
+ syncPinnedOutfit();
  syncGestures();
 }
 function syncGestures(){
@@ -1222,9 +1239,10 @@ const cookingScenes={
 let lastActivity=Date.now(), changedWhileAway=false, lastScene=0;
 function readyForWardrobe(){
  return mode==='avatar'&&state==='idle'&&!$('#q').value.trim()&&!document.hidden
-  &&!$('#wardrobe').open&&$('#autoOutfit').checked&&$('#av').dataset.preview!=='true';
+  &&!hasPinnedOutfit()&&!$('#wardrobe').open&&$('#autoOutfit').checked&&$('#av').dataset.preview!=='true';
 }
 function pickAnotherOutfit(){
+ if(hasPinnedOutfit())return;
  const c=CH[cur];
  if(c.p.length<2)return;
  const choices=c.p.map((url,i)=>({url,i})).filter(v=>v.i!==c.sel&&!wardrobeBath[cur].includes(v.url)&&!wardrobeProvocative[cur].includes(v.url)&&(cur!=='luna'||[...wardrobe30.luna,...wardrobe45.luna,...wardrobeBaseball.luna,...wardrobeNew45.luna].includes(v.url)));
@@ -2192,7 +2210,7 @@ def _dialogue_response(raw, character):
 
 @app.get("/api/version")
 def version():
-    return jsonify(build="respaldos-20261121")
+    return jsonify(build="atuendo-fijado-20261121")
 
 def _scene_text(value):
     return str(value or "").casefold().translate(str.maketrans("áéíóúüñ", "aeiouun"))
@@ -2537,7 +2555,7 @@ def _chat_failure(failures, request_id):
     summary = _failure_summary(failures)
     if summary:
         text += " Detalle: " + summary + "."
-    return jsonify(error=text, error_code=code, request_id=request_id, attempts=failures, build="respaldos-20261121", retryable=any(f['retryable'] for f in failures)), 503
+    return jsonify(error=text, error_code=code, request_id=request_id, attempts=failures, build="atuendo-fijado-20261121", retryable=any(f['retryable'] for f in failures)), 503
 
 
 @app.post("/api/chat")
@@ -2578,7 +2596,7 @@ def chat():
         silent.update(brain='Escena local', model=None, requested_brain='OpenRouter' if preference == 'openrouter' else 'Gemini',
                       preferred_brain='OpenRouter' if preference == 'openrouter' else 'Gemini', routing_attempts=[],
                       chat_mode=chat_mode or ('role' if preference == 'openrouter' else 'normal'),
-                      request_id=uuid.uuid4().hex[:12], build='respaldos-20261121')
+                      request_id=uuid.uuid4().hex[:12], build='atuendo-fijado-20261121')
         return jsonify(silent)
     history = _knowledge_context(data, character, message)
     candidate_memory = data.get("memory")
@@ -2698,7 +2716,7 @@ def chat():
             response["routing_attempts"] = failures
             response["preferred_brain"] = enabled[0][0]
             response["request_id"] = request_id
-            response["build"] = "respaldos-20261121"
+            response["build"] = "atuendo-fijado-20261121"
             return jsonify(response)
         except (HTTPError, URLError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError) as error:
             detail = _failure_detail(name, error)
