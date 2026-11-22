@@ -25,7 +25,7 @@ PAGE = r"""
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Luna AI</title><meta name="luna-build" content="atuendo-fijado-20261121">
+<title>Luna AI</title><meta name="luna-build" content="conversacion-17-atuendos-20261121">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&display=swap">
 <style>
 :root{color-scheme:dark;--bg:#07040f;--ln:rgba(var(--accrgb),.4);--vio:#a66bff;--cy:#35e1ff;--tx:#efe7ff;--mu:#a597c4;--acc1:#8a33f0;--acc2:#4a1a96;--accrgb:176,110,255;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -234,6 +234,9 @@ button,summary,select{transition:background .2s,border-color .2s,box-shadow .2s}
 
 #scene-controls{max-height:72vh;overflow-y:auto}#scene-controls input[type=number]{background:#261c36;color:var(--tx);border:1px solid var(--edge);border-radius:12px;padding:11px 12px;font:inherit;width:100%}#return-retry{border:1px solid var(--edge);border-radius:10px;background:#261c36;color:var(--tx);padding:7px 12px;font:inherit;font-size:11px}
 #rhythm-tools button{border:1px solid rgba(var(--accrgb),.3);background:rgba(24,16,38,.9);border-radius:14px;padding:7px 12px;font-size:11px}#rhythm-tools button[aria-pressed=true]{border-color:var(--cy)}#rhythm-release{background:rgba(22,91,64,.7)!important}#rhythm-tools [hidden]{display:none}
+
+#app[data-char="dracona"] #avimg{animation:none!important;transform:none!important}
+#app[data-char="dracona"] #av{animation:none!important;transform:none!important}
 </style></head>
 <body>
 <div id="app" data-mode="core"><svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
@@ -458,7 +461,7 @@ resize();requestAnimationFrame(loop);
 if('speechSynthesis' in window){speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices()}
 const pendingFollowups=new Map();
 const LBL={idle:'Lista',listening:'Escuchando',thinking:'Pensando',speaking:'Hablando'};
-function setState(s){state=s;$('#st').dataset.s=s;$('#stt').textContent=s==='idle'&&pendingFollowups.has(cur)?'Continuando…':LBL[s]}
+function setState(s){state=s;window.lunaMotion?.state(s);$('#st').dataset.s=s;$('#stt').textContent=s==='idle'&&pendingFollowups.has(cur)?'Continuando…':LBL[s]}
 function setMode(m){mode=m;modeT=performance.now();if(m==='core')showSelectedOutfit();if(m==='avatar'){const v=$('#av');v.classList.remove('rev');void v.offsetWidth;v.classList.add('rev')}app.dataset.mode=m;document.querySelectorAll('.tog button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===m))}
 $('#hr').oninput=e=>{const h=e.target.value/100;app.style.setProperty('--h',h);document.querySelector('#live-holo feFuncA').setAttribute('slope',String(.55*h))};
 $('#pal').onclick=()=>{
@@ -922,6 +925,7 @@ async function askStored(q,character,edit=null,event=null){
  }
 
  cancelFollowup(character);
+ window.lunaMotion?.cancel();
  if(busy.has(character))return;
  busy.add(character);
  stopVoice();
@@ -944,7 +948,7 @@ async function askStored(q,character,edit=null,event=null){
   let shownGesture=null;
   if(character===cur){
    const gesture=result.gesture||requestedGesture(character,q);
-   if(gesture&&!calm&&mode==='avatar'&&playGesture(gesture,false))shownGesture=gesture;
+   if(!window.lunaMotion?.accept(result)&&gesture&&!calm&&mode==='avatar'&&playGesture(gesture,false))shownGesture=gesture;
   }
   const acceptedAt=Date.now();
   const memory=cleanMemory(result.memory);
@@ -1106,6 +1110,7 @@ function showSelectedOutfit(){
  $('#av').dataset.preview='false';
  const selected=c.p[c.sel];
  if(!selected)return;
+ if(window.lunaMotion?.showOutfit())return;
  setImg(selected,undefined,()=>{
   if(c.p[0]!==selected)setImg(c.p[0]);
   $('#wardrobe-status').textContent='Este atuendo no está disponible.';
@@ -1209,6 +1214,7 @@ function playGesture(id,preview=false){
   if(preview)status.textContent='Este atuendo aún no tiene ese gesto. Puedes ver el GIF original con la casilla de abajo.';
   return false;
  }
+ window.lunaMotion?.suspend(clip.duration);
  clearTimeout(gestureTimer);
  status.textContent='';
  setImg(clip.url+'?v=4&play='+String(imageRequest+1),()=>{
@@ -1279,6 +1285,7 @@ $('#file').onchange=e=>addPoses(e.target.files);
 $('#load').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('#file').click()}};
 $('#stage').ondragover=e=>e.preventDefault();$('#stage').ondrop=e=>{e.preventDefault();addPoses(e.dataTransfer.files)};
 </script>
+<script src="/static/conversation/dracona-motion.js?v=17-20261121"></script>
 </body></html>
 
 """
@@ -2210,7 +2217,7 @@ def _dialogue_response(raw, character):
 
 @app.get("/api/version")
 def version():
-    return jsonify(build="atuendo-fijado-20261121")
+    return jsonify(build="conversacion-17-atuendos-20261121")
 
 def _scene_text(value):
     return str(value or "").casefold().translate(str.maketrans("áéíóúüñ", "aeiouun"))
@@ -2555,7 +2562,7 @@ def _chat_failure(failures, request_id):
     summary = _failure_summary(failures)
     if summary:
         text += " Detalle: " + summary + "."
-    return jsonify(error=text, error_code=code, request_id=request_id, attempts=failures, build="atuendo-fijado-20261121", retryable=any(f['retryable'] for f in failures)), 503
+    return jsonify(error=text, error_code=code, request_id=request_id, attempts=failures, build="conversacion-17-atuendos-20261121", retryable=any(f['retryable'] for f in failures)), 503
 
 
 @app.post("/api/chat")
@@ -2596,7 +2603,7 @@ def chat():
         silent.update(brain='Escena local', model=None, requested_brain='OpenRouter' if preference == 'openrouter' else 'Gemini',
                       preferred_brain='OpenRouter' if preference == 'openrouter' else 'Gemini', routing_attempts=[],
                       chat_mode=chat_mode or ('role' if preference == 'openrouter' else 'normal'),
-                      request_id=uuid.uuid4().hex[:12], build='atuendo-fijado-20261121')
+                      request_id=uuid.uuid4().hex[:12], build='conversacion-17-atuendos-20261121')
         return jsonify(silent)
     history = _knowledge_context(data, character, message)
     candidate_memory = data.get("memory")
@@ -2716,7 +2723,7 @@ def chat():
             response["routing_attempts"] = failures
             response["preferred_brain"] = enabled[0][0]
             response["request_id"] = request_id
-            response["build"] = "atuendo-fijado-20261121"
+            response["build"] = "conversacion-17-atuendos-20261121"
             return jsonify(response)
         except (HTTPError, URLError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError) as error:
             detail = _failure_detail(name, error)
