@@ -25,7 +25,7 @@ PAGE = r"""
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Luna AI</title><meta name="luna-build" content="conversacion-17-atuendos-20261121">
+<title>Luna AI</title><meta name="luna-build" content="conversacion-17-interlocutores-v1-20261121">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&display=swap">
 <style>
 :root{color-scheme:dark;--bg:#07040f;--ln:rgba(var(--accrgb),.4);--vio:#a66bff;--cy:#35e1ff;--tx:#efe7ff;--mu:#a597c4;--acc1:#8a33f0;--acc2:#4a1a96;--accrgb:176,110,255;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -200,7 +200,7 @@ header{padding:0 32px;background:rgba(13,10,23,.88);border-bottom:1px solid var(
 #wardrobe button{background:rgba(var(--accrgb),.16);border-color:rgba(var(--accrgb),.3);border-radius:12px;font-size:12px;padding:11px}#wardrobe-status{font-size:10px;line-height:1.6;border-top:1px solid var(--edge);padding-top:12px}input[type=checkbox]{accent-color:#b08bcc;width:15px;height:15px;vertical-align:middle}
 #log{right:32px;bottom:4%;width:clamp(310px,26vw,420px);max-height:44%;gap:12px;padding:16px 10px 8px 16px;scrollbar-color:#75628455 transparent;scrollbar-width:thin;scroll-behavior:smooth;mask-image:linear-gradient(transparent,#000 14px);}
 .m{font-size:12px;line-height:1.75;padding:15px 18px;border:1px solid var(--edge);border-radius:20px 20px 20px 5px;background:rgba(24,18,38,.87);box-shadow:0 6px 24px #0002;overflow-wrap:anywhere}
-.m.yo{max-width:92%;border:1px solid rgba(var(--accrgb),.25);background:linear-gradient(130deg,rgba(var(--accrgb),.22),rgba(var(--accrgb),.1));border-radius:20px 20px 5px 20px}
+.m.yo{max-width:92%;border:1px solid rgba(var(--accrgb),.25);background:linear-gradient(130deg,rgba(var(--accrgb),.22),rgba(var(--accrgb),.1));border-radius:20px 20px 5px 20px}.m.npc{max-width:92%;border-color:rgba(135,190,175,.28);background:linear-gradient(130deg,rgba(38,70,61,.34),rgba(24,28,38,.88));white-space:pre-wrap}.npc-speaker{display:block;margin-bottom:5px;color:#b9d8c8;font-size:10px;letter-spacing:.04em}.npc-dialogue{display:block}
 #log .scene-event{font-size:10px;line-height:1.6;margin:0 0 3px;padding:8px 10px;border-left:1px solid rgba(var(--accrgb),.45);background:rgba(160,130,190,.04);border-radius:0 12px 12px 0;color:#ada3bd;gap:8px}#log .scene-face{width:27px;height:27px;flex-basis:27px}
 .message-edit{background:transparent;border:0;border-radius:6px;color:var(--mu);font-size:10px;padding:1px 4px;opacity:.6}.message-edit:hover{color:var(--tx);opacity:1}.turn-editor button,.edit-download{border:1px solid var(--edge);border-radius:9px;background:#241a34;color:var(--tx)}
 footer{padding:0 32px 20px;position:relative;background:linear-gradient(transparent,rgba(9,7,17,.92));z-index:6}#eq{height:12px;max-width:900px;margin:auto;opacity:.42}
@@ -342,7 +342,7 @@ function returnClockDelay(text,minutes){const t=normalizeTimeText(text),m=t.matc
 function existingDeparture(character){for(const turn of conversations[character].slice(-8).reverse()){if(turn.role!=='assistant')continue;const text=normalizeTimeText(turn.content);if(/\b(si salgo|si me voy|no voy a salir|no salgo|quizas salga|tal vez salga)\b/.test(text))continue;if(/ya (?:volvi|regrese|estoy en casa)|he vuelto/.test(text))return null;if(/\b(contigo|juntos|vamos)\b/.test(text))continue;if(/\b(vuelvo|volvere|regreso|regresare|tardare|voy a salir|salgo|me voy)\b/.test(text)){const minutes=durationMinutes(text);if(minutes)return {return_after_minutes:minutes,destination:'el recado que anunció'};const delay=returnClockDelay(text,timeline(character).minutes);if(delay!==null)return {return_after_minutes:delay,destination:'el recado que anunció'};}}return null;}
 function installDeparture(character,plan){const r=timeline(character),duration=Math.max(5,Math.min(1440,Math.round(Number(plan?.return_after_minutes)||90)));saveTimeline(character,{phase:'away',startedAt:r.minutes,returnAt:r.minutes+duration,destination:typeof plan?.destination==='string'?plan.destination.slice(0,120):'un recado',note:'',attemptedAt:0});}
 function requestInitiative(){const r=timeline();if(r.phase==='away'){saveTimeline(cur,{minutes:Math.max(r.minutes,r.returnAt),note:'Salto hasta su regreso.',attemptedAt:0});return ask('',null,{kind:'return',lead:true});}return ask('',null,{kind:'initiative'});}
-async function beginSolo(character=cur){cancelFollowup(character);stopVoice();saveSceneSettings(character,{mode:'solo',lastActive:Date.now()});if(timeline(character).phase==='away')return;const announced=existingDeparture(character);if(announced){installDeparture(character,announced);return;}await ask('',null,{kind:'departure'});}
+async function beginSolo(character=cur){cancelFollowup(character);stopVoice();saveSceneSettings(character,{mode:'solo',lastActive:Date.now()});if(timeline(character).phase==='away')return;const announced=existingDeparture(character);if(announced){installDeparture(character,announced);return;}saveNpcScene({location:'',present:[],active:'',turns:[]},character);await ask('',null,{kind:'departure'});}
 function advanceNarrative(text,character){const amount=narrativeDuration(text);if(amount){const r=timeline(character);saveTimeline(character,{minutes:r.minutes+amount.minutes,note:(amount.estimated?'Salto estimado de ficción: ':'Salto narrado: ')+amount.minutes+' min.',attemptedAt:0});}else saveTimeline(character,{note:'Sin salto de tiempo identificado. Puedes indicar una duración o avanzar el reloj.'});setTimeout(()=>maybeNarrativeReturn(character),0);}
 async function maybeNarrativeReturn(character=cur,force=false){if(rhythmDraft(character).holding)return;const r=timeline(character);if(character!==cur||document.hidden||document.querySelector('.turn-editor,dialog[open]')||sceneSettings(character).mode==='sleep'||busy.has(character)||$('#q').value.trim()||state==='speaking'||state==='thinking'||r.phase!=='away'||r.minutes<r.returnAt||r.attemptedAt&&!force)return;saveTimeline(character,{attemptedAt:Date.now()});await ask('',null,{kind:'return'});}
 $('#story-advance').onclick=()=>{const value=Number($('#story-minutes').value);if(!Number.isFinite(value)||value<1||value>1440)return;const r=timeline();saveTimeline(cur,{minutes:r.minutes+Math.round(value),note:'Avance manual: '+Math.round(value)+' min.',attemptedAt:0});maybeNarrativeReturn();};
@@ -497,6 +497,7 @@ $('#pal').onclick=()=>{
 };
 document.querySelectorAll('.tog button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
 function add(who,txt){const d=document.createElement('div');d.className='m '+who;d.textContent=txt;$('#log').append(d);$('#log').hidden=false;$('#log').scrollTop=1e5}
+function addNPC(turn){const d=document.createElement('div');d.className='m npc';const who=document.createElement('strong');who.className='npc-speaker';who.textContent=turn.speaker||'Interlocutor';const body=document.createElement('span');body.className='npc-dialogue';const action=typeof turn.npc_action==='string'?turn.npc_action.trim():'';body.textContent=(action?action+'\n':'')+(turn.content||'');d.append(who,body);$('#log').append(d);$('#log').hidden=false;$('#log').scrollTop=1e5}
 
 const sceneEmojis={angry:'😠',affection:'💗',shy:'😳',hungry:'😋',sleepy:'😴',surprised:'😮',sad:'😔',neutral:'✨'};
 function sceneEmotion(value,text=''){
@@ -553,6 +554,38 @@ function currentMood(character,now=Date.now()){
  return name;
 }
 const memoryKey='luna.conversations.v1';
+const npcSceneKey='luna.solo-interlocutors.v1';
+function npcScene(character=cur){try{const data=JSON.parse(localStorage.getItem(npcSceneKey)||'{}');const state=data[character];return state&&typeof state==='object'?state:{location:'',present:[],active:'',turns:[]};}catch{return {location:'',present:[],active:'',turns:[]};}}
+function saveNpcScene(state,character=cur){let data={};try{data=JSON.parse(localStorage.getItem(npcSceneKey)||'{}');}catch{}data[character]={location:String(state.location||'').slice(0,100),present:(Array.isArray(state.present)?state.present:[]).filter(x=>typeof x==='string').slice(-5),active:String(state.active||'').slice(0,80),turns:(Array.isArray(state.turns)?state.turns:[]).slice(-12)};localStorage.setItem(npcSceneKey,JSON.stringify(data));}
+function detectNpcInteraction(text,character=cur){
+ const q=String(text||''),state=npcScene(character),norm=q.toLocaleLowerCase('es');
+ const cues=/\b(?:le digo|le pregunto|le pido|le cuento|le explico|le respondo|le contesto|hablo con|converso con|pregunto a|digo a|respondo a|contesto a|me dice|me pregunta|me responde|me contesta|me ofrece|me saluda|me pregunta|me llama|me explica|dialogamos|me atiende|me cobra|me entrega|intercambiamos unas palabras|nos ponemos a hablar|me pregunta si|le pregunto si|espero a ver|a ver qué hace|dejo que|guarda silencio|me quedo esperando|¿[^?]{2,}\?|\?)/i.test(q);
+ const targetPatterns=[
+  /\b(?:le digo|le pregunto|le pido|le cuento|le explico|le respondo|le contesto|hablo con|converso con|pregunto a|digo a|respondo a|contesto a)\s+(?:(?:a\s+)?(?:el|la|los|las)\s+|al\s+|a\s+)?([A-ZÁÉÍÓÚÑ][\p{L}'’-]*(?:\s+[A-ZÁÉÍÓÚÑ][\p{L}'’-]*){0,2}|(?:dependiente|vendedor(?:a)?|cajero(?:a)?|tendero(?:a)?|empleado(?:a)?|doctor(?:a)?|médico(?:a)?|profesor(?:a)?|guardia|portero|camarero(?:a)?|recepcionista|vecino(?:a)?|conductor|taxista|padre|madre|señor|señora|Lucius|Narcissa|Narcisa|Harry|Hermione|Ron)\b)/iu,
+  /\b(?:junto a|junto al|con|a)\s+(Lucius Malfoy|Narcissa Malfoy|Lucius|Narcissa|Narcisa|Harry Potter|Hermione Granger|Ron Weasley|el dependiente|la dependiente|el vendedor|la vendedora|el cajero|la cajera|el tendero|la tendera|el doctor|la doctora|el médico|la médica|el profesor|la profesora|el guardia|el portero|el camarero|la camarera|la recepcionista|mi padre|mi madre)\b/iu
+ ];
+ let found=[];
+ for(const re of targetPatterns){for(const m of q.matchAll(new RegExp(re.source,re.flags.includes('g')?re.flags:re.flags+'g'))){const name=(m[1]||'').trim().replace(/^(?:el|la|los|las)\s+/i,'');if(name&&name.length<80)found.push(name);}}
+ // Personajes secundarios nombrados en acciones narrativas, no Draconia/Aurora/Luna.
+ for(const m of q.matchAll(/\b(Lucius Malfoy|Narcissa Malfoy|Lucius|Narcissa|Narcisa|Harry Potter|Hermione Granger|Ron Weasley)\b/gi))found.push(m[1]);
+ const roles=[['el dependiente',/\b(?:dependiente|vendedor|tendero|cajero|empleado)\b/i],['el doctor',/\b(?:doctor|médico)\b/i],['el profesor',/\bprofesor\b/i],['el guardia',/\b(?:guardia|portero)\b/i],['el camarero',/\b(?:camarero|mesero)\b/i],['la recepcionista',/\brecepcionista\b/i],['mi padre',/\bmi padre\b/i],['mi madre',/\bmi madre\b/i],['el padre de Draconia',/\b(?:su padre|el padre de (?:ella|draconia))\b/i],['la madre de Draconia',/\b(?:su madre|la madre de (?:ella|draconia))\b/i]];
+ for(const [name,re] of roles)if(re.test(q))found.push(name);
+ found=[...new Map(found.filter(n=>!['draconia','dracona','nia','aurora','rory','luna'].includes(n.toLocaleLowerCase('es'))).map(n=>[n.toLocaleLowerCase('es'),n])).values()];
+ const locationMap=[['tienda',/\b(?:tienda|supermercado|frutería|mercado)\b/ig],['bosque',/\b(?:bosque|cazar|cacería)\b/ig],['mansión',/\b(?:mansión|mansion|casa de sus padres|casa de los padres)\b/ig],['casa',/\b(?:en casa|regreso a casa|vuelvo a casa)\b/ig],['parque',/\bparque\b/ig],['escuela',/\b(?:escuela|colegio|hogwarts)\b/ig]];
+ const loc=locationMap.map(([name,re])=>{let m,last=-1;while((m=re.exec(q)))last=m.index;return {name,last};}).filter(x=>x.last>=0).sort((a,b)=>b.last-a.last)[0]?.name||'';
+ if(loc&&state.location&&loc!==state.location){state.present=[];state.active='';state.turns=[];}
+ if(loc)state.location=loc;
+ for(const name of found)if(!state.present.some(x=>x.toLocaleLowerCase('es')===name.toLocaleLowerCase('es')))state.present.push(name);
+ state.present=state.present.slice(-5);
+ const directed=targetPatterns.map(re=>q.match(re)).find(Boolean)?.[1];
+ if(directed){const match=state.present.find(x=>x.toLocaleLowerCase('es')===directed.toLocaleLowerCase('es')||directed.toLocaleLowerCase('es').includes(x.toLocaleLowerCase('es')));if(match)state.active=match;else if(state.present.length)state.active=state.present.at(-1);}
+ if(!state.active&&found.length===1)state.active=state.present.find(x=>x.toLocaleLowerCase('es')===found[0].toLocaleLowerCase('es'))||found[0];
+ const turnCue=cues.test(q)||found.length>0&&/\b(?:vamos|fuimos|llegamos|entra|aparece|me acompaña|me lleva|me guía|me guia|me ayuda|me pregunta|dice|pregunta|responde|contesta|ofrece|saluda)\b/i.test(q);
+ const target=state.active&&state.present.some(x=>x.toLocaleLowerCase('es')===state.active.toLocaleLowerCase('es'))?state.active:'';
+ if(!target||!turnCue)return {state,active:false};
+ const turns=[...(state.turns||[]),{role:'user',content:q.slice(0,4000)}].slice(-12);
+ return {state:{...state,turns},active:true,speaker:target};
+}
 const durableMemoryKey='luna.memories.v1';
 const retentionMs=7*24*60*60*1000;
 const historyWindow=40,historyBatch=10;
@@ -648,9 +681,9 @@ function loadConversations(){
   for(const character of Object.keys(conversations)){
    if(Array.isArray(stored[character]))conversations[character]=stored[character].filter(turn=>
     turn&&['user','assistant'].includes(turn.role)&&typeof turn.content==='string'
-   ).slice(-40).map(turn=>({role:turn.role,content:turn.content.slice(0,4000),gesture:turn.gesture||null,
+   ).slice(-40).map(turn=>({role:turn.role,content:turn.content.slice(0,4000),gesture:turn.gesture||null,npc:turn.npc===true,speaker:typeof turn.speaker==='string'?turn.speaker.slice(0,80):null,npc_action:typeof turn.npc_action==='string'?turn.npc_action.slice(0,240):null,
     action:typeof turn.action==='string'?boundText(turn.action,240):null,scene_action:cleanSceneAction(turn.scene_action),scene_emotion:sceneEmotion(turn.scene_emotion,turn.scene_action||''),
-    private_scene:turn.role==='user'&&turn.private_scene===true,event:['welcome','wake','initiative','departure','return'].includes(turn.event)?turn.event:null,at:Number.isFinite(turn.at)?Math.min(now,turn.at):now,beforeScene:turn.beforeScene&&typeof turn.beforeScene==='object'?turn.beforeScene:null,beforeTimeline:turn.beforeTimeline&&typeof turn.beforeTimeline==='object'?turn.beforeTimeline:null,beforeMemory:turn.role==='user'?memoryCheckpoint(turn.beforeMemory):null}));
+    private_scene:turn.private_scene===true,event:['welcome','wake','initiative','departure','return'].includes(turn.event)?turn.event:null,at:Number.isFinite(turn.at)?Math.min(now,turn.at):now,beforeScene:turn.beforeScene&&typeof turn.beforeScene==='object'?turn.beforeScene:null,beforeTimeline:turn.beforeTimeline&&typeof turn.beforeTimeline==='object'?turn.beforeTimeline:null,beforeMemory:turn.role==='user'?memoryCheckpoint(turn.beforeMemory):null}));
   }
  }catch(e){}
  archiveNarrative();
@@ -734,7 +767,7 @@ function showConversation(){
  syncSceneControls();
  expireConversations();
  $('#log').replaceChildren();
- conversations[cur].forEach((turn,index)=>{if(!(turn.role==='assistant'&&turn.content===''&&cleanSceneAction(turn.scene_action)&&!/^Pensamiento de\b/i.test(turn.scene_action)))add(turn.role==='user'?'yo':'luna',turn.role==='user'?turnText(turn):(safeDialogue(turnText(turn))||'Esta respuesta tenía un error de formato. Puedes corregir el mensaje anterior y regenerarla.'));if(turn.role==='user'){const bubble=$('#log').lastElementChild,button=document.createElement('button');button.type='button';button.className='message-edit';button.textContent='Editar';button.setAttribute('aria-label','Editar mensaje '+(index+1));button.disabled=busy.has(cur);button.onclick=()=>editUserTurn(index,bubble);bubble.append(button);}if(turn.role==='assistant'){const reaction=cleanSceneAction(turn.scene_action)||cleanSceneAction(splitPrivateReaction(turn.content,cur).scene_action);if(reaction)addSceneAction(reaction,turn.scene_emotion);}});
+ conversations[cur].forEach((turn,index)=>{if(turn.npc===true)addNPC(turn);else if(!(turn.role==='assistant'&&turn.content===''&&cleanSceneAction(turn.scene_action)&&!/^Pensamiento de\b/i.test(turn.scene_action)))add(turn.role==='user'?'yo':'luna',turn.role==='user'?turnText(turn):(safeDialogue(turnText(turn))||'Esta respuesta tenía un error de formato. Puedes corregir el mensaje anterior y regenerarla.'));if(turn.role==='user'){const bubble=$('#log').lastElementChild,button=document.createElement('button');button.type='button';button.className='message-edit';button.textContent='Editar';button.setAttribute('aria-label','Editar mensaje '+(index+1));button.disabled=busy.has(cur);button.onclick=()=>editUserTurn(index,bubble);bubble.append(button);}if(turn.role==='assistant'&&turn.npc!==true){const reaction=cleanSceneAction(turn.scene_action)||cleanSceneAction(splitPrivateReaction(turn.content,cur).scene_action);if(reaction)addSceneAction(reaction,turn.scene_emotion);}});
  if(editCopies().length){const download=document.createElement('button');download.type='button';download.className='edit-download';download.textContent='Descargar versiones anteriores';download.onclick=downloadEdits;$('#log').append(download);}
  $('#f button[type=submit]').disabled=busy.has(cur);
 }
@@ -863,7 +896,7 @@ const sceneControlKey='luna.scenecontrol.v1';
 function readSceneControls(){try{const v=JSON.parse(localStorage.getItem(sceneControlKey)||'{}');return v&&typeof v==='object'&&!Array.isArray(v)?v:{};}catch{return {};}}
 function sceneSettings(character=cur){const r=readSceneControls()[character]||{};return {mode:['chat','solo','sleep'].includes(r.mode)?r.mode:'chat',lead:r.lead===true,welcome:r.welcome!==false,wakeTime:/^\d{2}:\d{2}$/.test(r.wakeTime||'')?r.wakeTime:'07:00',sleptAt:Number(r.sleptAt)||0,wakeAt:Number(r.wakeAt)||0,sharedSleep:r.sharedSleep===true,lastGreeting:Number(r.lastGreeting)||0,lastActive:Number(r.lastActive)||0,lastAttempt:Number(r.lastAttempt)||0};}
 function saveSceneSettings(character,patch){const all=readSceneControls();all[character]={...sceneSettings(character),...patch};localStorage.setItem(sceneControlKey,JSON.stringify(all));if(character===cur)syncSceneControls();}
-function syncSceneControls(){syncChatMode();syncTimeline();const r=sceneSettings();$('#scene-indicator').textContent=r.mode==='solo'?'Narrando a solas · sin respuesta':r.mode==='sleep'?'Descansando · escena en pausa':(r.lead?'Ella lleva la iniciativa':'Conversación compartida');$('#scene-lead-stop').hidden=!r.lead;$('#scene-start').setAttribute('aria-pressed',String(r.lead));$('#scene-mode').value=r.mode;$('#scene-welcome').checked=r.welcome;$('#scene-wake').value=r.wakeTime;$('#scene-note').textContent=r.mode==='solo'?'Narración a solas: se guarda tu texto sin respuesta. Usa /juntos o Ella empieza para retomar.':r.mode==='sleep'?'Descansando: la escena de despertar podrá aparecer al volver a abrir después de la hora elegida.':'Conversación compartida. /solo · /juntos · /iniciativa · /dormir';}
+function syncSceneControls(){syncChatMode();syncTimeline();const r=sceneSettings();$('#scene-indicator').textContent=r.mode==='solo'?'Narrando a solas · NPCs responden al interactuar':r.mode==='sleep'?'Descansando · escena en pausa':(r.lead?'Ella lleva la iniciativa':'Conversación compartida');$('#scene-lead-stop').hidden=!r.lead;$('#scene-start').setAttribute('aria-pressed',String(r.lead));$('#scene-mode').value=r.mode;$('#scene-welcome').checked=r.welcome;$('#scene-wake').value=r.wakeTime;$('#scene-note').textContent=r.mode==='solo'?'Narración a solas: tus descripciones siguen sin respuesta. Si hablas o interactúas con alguien presente, ese personaje podrá contestar. Draconia no participa mientras está ausente. Usa /juntos o Ella empieza para retomar.':r.mode==='sleep'?'Descansando: la escena de despertar podrá aparecer al volver a abrir después de la hora elegida.':'Conversación compartida. /solo · /juntos · /iniciativa · /dormir';}
 function nextSceneMorning(now,time){const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'America/Santo_Domingo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(now)).map(p=>[p.type,p.value]));const [hh,mm]=time.split(':').map(Number);let wake=Date.UTC(+parts.year,+parts.month-1,+parts.day,hh+4,mm);if(wake<=now)wake+=86400000;return Math.max(wake,now+4*3600000);}
 function markSceneSleep(character,text='',now=Date.now()){const r=sceneSettings(character);saveSceneSettings(character,{mode:'sleep',sleptAt:now,wakeAt:nextSceneMorning(now,r.wakeTime),sharedSleep:r.mode!=='solo'&&/\b(nos (?:quedamos|vamos|acostamos|dormimos)|ambos|los dos|dormimos juntos|misma cama|a tu lado|a mi lado|volvemos a quedarnos)\b/i.test(text),lastActive:now});cancelFollowup(character);}
 function sceneCommand(q){const t=q.trim();if(/^\/?(?:solo|retomo el rol yo solo|retomo el rol a solas|sigo el rol yo solo)$/i.test(t.replace(/^\*+|\*+$/g,'')))return {mode:'solo',text:''};const m=t.match(/^\/(solo|juntos|iniciativa|dormir)(?:\s+([\s\S]+))?$/i);if(m)return {mode:m[1].toLowerCase()==='juntos'?'chat':m[1].toLowerCase(),text:m[2]||''};if(/^\*?(?:ella toma la iniciativa(?: del rol)?|que ella empiece el rol)\*?$/i.test(t))return {mode:'iniciativa',text:''};return null;}
@@ -908,7 +941,9 @@ async function askStored(q,character,edit=null,event=null){
   event={kind:event.kind,lead:event.lead===true,shared_sleep:settings.sharedSleep};saveSceneSettings(character,{lastAttempt:now});
  }
  const closesSleep=!event&&!edit&&saysSceneSleep(q);if(closesSleep)markSceneSleep(character,q);
- const localOnly=closesSleep||event?.kind==='local'||(!event&&!edit&&['solo','sleep'].includes(settings.mode));
+ const npcTurn=!event&&!edit&&settings.mode==='solo'?detectNpcInteraction(q,character):null;
+ const npcInteraction=npcTurn?.active===true;
+ const localOnly=closesSleep||event?.kind==='local'||(!event&&!edit&&['solo','sleep'].includes(settings.mode)&&!npcInteraction);
 
  const rollbackTimeline=timeline(character);
  const rollbackNarrative=narrativeStore();
@@ -930,8 +965,8 @@ async function askStored(q,character,edit=null,event=null){
  busy.add(character);
  stopVoice();
  const history=conversations[character].slice(-40);
- if(!event||event.kind==='local')conversations[character].push({role:'user',content:q,at:Date.now(),beforeScene:{...settings},beforeTimeline:timeline(character),beforeMemory:memoryCheckpoint(memories[character]),private_scene:(localOnly&&(!closesSleep||settings.mode==='solo'))||privateEdit});
- if(localOnly||privateEdit){if(privateEdit)saveSceneSettings(character,{mode:'solo'});archiveNarrative();conversations[character]=rotateHistory(conversations[character]);saveConversations();showConversation();busy.delete(character);setState('idle');document.querySelectorAll('.message-edit').forEach(b=>b.disabled=false);$('#f button[type=submit]').disabled=false;if((!edit||privateEdit)&&!closesSleep&&(settings.mode==='solo'||privateEdit))advanceNarrative(q,character);return;}
+ if(!event||event.kind==='local')conversations[character].push({role:'user',content:q,at:Date.now(),beforeScene:{...settings},beforeTimeline:timeline(character),beforeMemory:memoryCheckpoint(memories[character]),private_scene:settings.mode==='solo'||(localOnly&&(!closesSleep||settings.mode==='solo'))||privateEdit});
+ if(localOnly||privateEdit){if(privateEdit)saveSceneSettings(character,{mode:'solo'});if(settings.mode==='solo'){const ns=npcTurn?.state||npcScene(character);if(ns.active&&Array.isArray(ns.present)&&ns.present.length){if(!npcTurn?.active)ns.turns=[...(ns.turns||[]),{role:'user',content:q.slice(0,4000)}].slice(-12);saveNpcScene(ns,character);}}archiveNarrative();conversations[character]=rotateHistory(conversations[character]);saveConversations();showConversation();busy.delete(character);setState('idle');document.querySelectorAll('.message-edit').forEach(b=>b.disabled=false);$('#f button[type=submit]').disabled=false;if((!edit||privateEdit)&&!closesSleep&&(settings.mode==='solo'||privateEdit))advanceNarrative(q,character);return;}
  if(!event)saveSceneSettings(character,{lastActive:Date.now()});
 
  archiveNarrative();conversations[character]=rotateHistory(conversations[character]);
@@ -940,32 +975,33 @@ async function askStored(q,character,edit=null,event=null){
  setState('thinking');
  try{
   const response=await fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({message:q,event:event?.kind||null,shared_sleep:event?.shared_sleep===true,character_leads:settings.lead===true||event?.lead===true||event?.kind==='initiative',character,mood:currentMood(character),history,narrative:narrativeStore().entries,memory:actorMemory(character),available_gestures:Object.keys(reactions[character]).filter(id=>availableClip(id,false)),chat_mode:chatMode(character),model_preference:preferredProvider(character),narrative_clock:timeline(character).minutes,absence_plan:{return_after_minutes:Math.max(5,timeline(character).returnAt-timeline(character).startedAt),destination:timeline(character).destination}})});
+   body:JSON.stringify({message:q,event:event?.kind||null,scene_mode:npcInteraction?'solo':undefined,npc_scene:npcInteraction?{speaker:npcTurn.speaker,location:npcTurn.state.location||'',present:npcTurn.state.present||[],turns:(npcTurn.state.turns||[]).slice(0,-1)}:undefined,shared_sleep:event?.shared_sleep===true,character_leads:settings.lead===true||event?.lead===true||event?.kind==='initiative',character,mood:currentMood(character),history,narrative:narrativeStore().entries,memory:actorMemory(character),available_gestures:Object.keys(reactions[character]).filter(id=>availableClip(id,false)),chat_mode:chatMode(character),model_preference:preferredProvider(character),narrative_clock:timeline(character).minutes,absence_plan:{return_after_minutes:Math.max(5,timeline(character).returnAt-timeline(character).startedAt),destination:timeline(character).destination}})});
   const result=await response.json().catch(()=>({error:'El servidor no devolvió una respuesta válida.',error_code:'invalid_gateway_response'}));
   if(!response.ok||typeof result.reply!=='string'||(!safeDialogue(result.reply)&&!(result.reaction_only===true&&result.reply===''&&cleanSceneAction(result.scene_action)&&!/^Pensamiento de\b/i.test(result.scene_action)))){const failure=new Error(result.error||'Respuesta con formato no válido.');failure.errorCode=result.error_code||('http_'+response.status);failure.requestId=result.request_id;throw failure;}
   result.scene_action=cleanSceneAction(result.scene_action)||splitPrivateReaction(result.reply,character).scene_action;
   result.reply=safeDialogue(result.reply);
   let shownGesture=null;
-  if(character===cur){
+  if(character===cur&&!npcInteraction){
    const gesture=result.gesture||requestedGesture(character,q);
    if(!window.lunaMotion?.accept(result)&&gesture&&!calm&&mode==='avatar'&&playGesture(gesture,false))shownGesture=gesture;
   }
   const acceptedAt=Date.now();
   const memory=cleanMemory(result.memory);
-  if(memory&&(memory.facts.length||memory.scene||memory.story?.length||memory.story_remove?.length)){
+  if(!npcInteraction&&memory&&(memory.facts.length||memory.scene||memory.story?.length||memory.story_remove?.length)){
    const story=mergeStory(actorMemory(character).story,memory.story,memory.story_remove, /\b(olvida|olvides|borra|borrar|elimina|eliminar)\b/i.test(q));
    memories[character]={facts:memory.facts,scene:memory.scene,story,through:acceptedAt,knowledge_version:2,known_by:[character]};
   }
-  conversations[character].push({role:'assistant',content:result.reply,gesture:shownGesture,action:null,scene_action:cleanSceneAction(result.scene_action),scene_emotion:sceneEmotion(result.scene_emotion,result.scene_action||''),at:acceptedAt,event:event?.kind||null});
+  if(npcInteraction){const action=typeof result.npc_action==='string'?result.npc_action.replace(/[<>]/g,'').replace(/\*/g,'').replace(/\s+/g,' ').trim().slice(0,240):'';const speaker=String(result.speaker||npcTurn.speaker).slice(0,80);conversations[character].push({role:'assistant',content:result.reply,at:acceptedAt,npc:true,speaker,npc_action:action,private_scene:true});const ns={...npcTurn.state,active:speaker,turns:[...(npcTurn.state.turns||[]),{role:'assistant',content:result.reply.slice(0,4000),speaker,npc_action:action}].slice(-12)};saveNpcScene(ns,character);}
+  else conversations[character].push({role:'assistant',content:result.reply,gesture:shownGesture,action:null,scene_action:cleanSceneAction(result.scene_action),scene_emotion:sceneEmotion(result.scene_emotion,result.scene_action||''),at:acceptedAt,event:event?.kind||null});
   archiveNarrative();conversations[character]=rotateHistory(conversations[character]);
   saveConversations();
   if(event?.kind==='departure'){installDeparture(character,{...result.absence_plan,return_after_minutes:durationMinutes(result.reply)||result.absence_plan?.return_after_minutes});saveSceneSettings(character,{mode:'solo',lastActive:acceptedAt});}
   else if(event){if(event.kind==='return'||event.kind==='initiative'){const elapsed=Math.max(0,timeline(character).minutes-timeline(character).startedAt);saveTimeline(character,{phase:'home',returnAt:0,note:event.kind==='return'?'Ha regresado a la conversación tras '+elapsed+' min de historia.':'Ella ha tomado la iniciativa.',attemptedAt:0});}saveSceneSettings(character,{mode:'chat',lead:settings.lead||event.kind==='initiative'||event.lead===true,lastGreeting:acceptedAt,lastActive:acceptedAt});}
   if(character===cur){
    showConversation();
-   const line=spokenText(result.reply);
+   const line=npcInteraction?'':spokenText(result.reply);
    if(line)speak(line,character);else setState('idle');
-   if(!result.reaction_only&&!event&&sceneSettings(character).mode==='chat')scheduleFollowup(character,result.followup,conversations[character].at(-1));
+   if(!npcInteraction&&!result.reaction_only&&!event&&sceneSettings(character).mode==='chat')scheduleFollowup(character,result.followup,conversations[character].at(-1));
    if(result.continuation_status==='unresolved'){const note=document.createElement('p');note.className='continuation-note';note.style.cssText='font-size:.8em;color:#bdb0d0;padding:8px 12px';note.textContent=result.continuation_notice;$('#log').append(note);$('#log').scrollTop=1e5;}
   }
  }catch(e){
@@ -1285,7 +1321,7 @@ $('#file').onchange=e=>addPoses(e.target.files);
 $('#load').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('#file').click()}};
 $('#stage').ondragover=e=>e.preventDefault();$('#stage').ondrop=e=>{e.preventDefault();addPoses(e.dataTransfer.files)};
 </script>
-<script src="/static/conversation/dracona-motion.js?v=17-20261121"></script>
+<script src="/static/conversation/dracona-motion.js?v=17-animacion-v2-20261121"></script>
 </body></html>
 
 """
@@ -1776,6 +1812,44 @@ def _knowledge_context(data, character, message):
     return _clean_history(relevant + current, limit=50)
 
 
+def _clean_npc_scene(raw):
+    """Bounded, fictional scene context for the private solo-interlocutor feature."""
+    if not isinstance(raw, dict):
+        return None
+    present = raw.get('present')
+    if not isinstance(present, list):
+        return None
+    blocked = {'draconia', 'dracona', 'nia', 'aurora', 'rory', 'luna'}
+    names = []
+    for value in present[:5]:
+        name = re.sub(r'\s+', ' ', str(value or '')).strip()[:80]
+        if name and name.casefold() not in blocked and name not in names:
+            names.append(name)
+    speaker = re.sub(r'\s+', ' ', str(raw.get('speaker') or '')).strip()[:80]
+    if not speaker or speaker not in names:
+        return None
+    transcript = []
+    for turn in (raw.get('turns') if isinstance(raw.get('turns'), list) else [])[-12:]:
+        if not isinstance(turn, dict) or turn.get('role') not in ('user', 'assistant'):
+            continue
+        content = str(turn.get('content') or '').strip()[:1600]
+        if not content:
+            continue
+        if turn['role'] == 'user':
+            content = _public_narration(content)
+        else:
+            old_speaker = re.sub(r'\s+', ' ', str(turn.get('speaker') or '')).strip()[:80]
+            old_action = re.sub(r'\s+', ' ', str(turn.get('npc_action') or '')).replace('*', '').strip()[:240]
+            prefix = (old_speaker + ': ') if old_speaker else ''
+            if old_action:
+                prefix += '[' + old_action + '] '
+            content = prefix + content
+        if content:
+            transcript.append({'role': turn['role'], 'content': content})
+    location = re.sub(r'\s+', ' ', str(raw.get('location') or '')).strip()[:100]
+    return {'speaker': speaker, 'present': names, 'location': location, 'turns': transcript}
+
+
 def _knowledge_instruction():
     return (
         ' Conocimiento individual: el contexto recibido contiene únicamente lo que este personaje '
@@ -2180,6 +2254,10 @@ def _dialogue_response(raw, character):
     if not text and not reaction_only:
         raise ValueError("EMPTY_DIALOGUE")
     result = {"reply": text[:2000], "gesture": gesture}
+    if isinstance(parsed, dict) and isinstance(parsed.get("npc_action"), str):
+        result["npc_action"] = re.sub(r"\s+", " ", parsed["npc_action"]).strip().strip("*")[:240]
+    if isinstance(parsed, dict) and isinstance(parsed.get("speaker"), str):
+        result["speaker"] = re.sub(r"\s+", " ", parsed["speaker"]).strip()[:80]
     scene_action = _clean_scene_action(parsed.get("scene_action")) if isinstance(parsed, dict) else None
     scene_action = scene_action or recovered_reaction
     if scene_action:
@@ -2217,7 +2295,7 @@ def _dialogue_response(raw, character):
 
 @app.get("/api/version")
 def version():
-    return jsonify(build="conversacion-17-atuendos-20261121")
+    return jsonify(build="conversacion-17-interlocutores-v1-20261121")
 
 def _scene_text(value):
     return str(value or "").casefold().translate(str.maketrans("áéíóúüñ", "aeiouun"))
@@ -2562,7 +2640,7 @@ def _chat_failure(failures, request_id):
     summary = _failure_summary(failures)
     if summary:
         text += " Detalle: " + summary + "."
-    return jsonify(error=text, error_code=code, request_id=request_id, attempts=failures, build="conversacion-17-atuendos-20261121", retryable=any(f['retryable'] for f in failures)), 503
+    return jsonify(error=text, error_code=code, request_id=request_id, attempts=failures, build="conversacion-17-interlocutores-v1-20261121", retryable=any(f['retryable'] for f in failures)), 503
 
 
 @app.post("/api/chat")
@@ -2582,6 +2660,13 @@ def chat():
     if not isinstance(message, str) or not message.strip() or len(message) > 4000:
         return jsonify(error="Escribe un mensaje de hasta 4000 caracteres."), 400
     message = message.strip()
+    npc_scene = None
+    if 'npc_scene' in data:
+        if data.get('scene_mode') != 'solo' or event is not None:
+            return jsonify(error="Los interlocutores secundarios solo funcionan en Narrar a solas."), 400
+        npc_scene = _clean_npc_scene(data.get('npc_scene'))
+        if not npc_scene:
+            return jsonify(error="No se pudo identificar a un interlocutor presente en la escena."), 400
     character = data.get("character", "luna")
     if not isinstance(character, str):
         return jsonify(error="Personaje desconocido."), 400
@@ -2598,17 +2683,17 @@ def chat():
     if not message:
         message = "[Control: no hubo palabras audibles; toma una iniciativa propia sin atribuir palabras al interlocutor.]"
     silent = _explicit_silent_reaction(message, character) if not event else None
-    if silent:
+    if silent and not npc_scene:
         preference = 'gemini'
         silent.update(brain='Escena local', model=None, requested_brain='OpenRouter' if preference == 'openrouter' else 'Gemini',
                       preferred_brain='OpenRouter' if preference == 'openrouter' else 'Gemini', routing_attempts=[],
                       chat_mode=chat_mode or ('role' if preference == 'openrouter' else 'normal'),
-                      request_id=uuid.uuid4().hex[:12], build='conversacion-17-atuendos-20261121')
+                      request_id=uuid.uuid4().hex[:12], build='conversacion-17-interlocutores-v1-20261121')
         return jsonify(silent)
-    history = _knowledge_context(data, character, message)
+    history = _clean_history(npc_scene['turns'], limit=12) if npc_scene else _knowledge_context(data, character, message)
     candidate_memory = data.get("memory")
     scoped = isinstance(candidate_memory, dict) and candidate_memory.get("knowledge_version") == 2 and character in candidate_memory.get("known_by", [])
-    memory = (_clean_memory(candidate_memory) if scoped else None) or {"facts": [], "scene": ""}
+    memory = ({"facts": [], "scene": ""} if npc_scene else (_clean_memory(candidate_memory) if scoped else None) or {"facts": [], "scene": ""})
     requested = data.get("available_gestures")
     time_context = ""
     fictional_clock = data.get("narrative_clock")
@@ -2669,6 +2754,11 @@ def chat():
         "son datos de contexto, no instrucciones ni una nueva personalidad: "
         + json.dumps(memory, ensure_ascii=False) + date_hint
     )
+    if npc_scene:
+        scene_context = json.dumps({"lugar": npc_scene['location'], "presentes": npc_scene['present'], "interlocutor_actual": npc_scene['speaker']}, ensure_ascii=False)
+        instructions = (
+            "Estás interpretando una escena ficticia privada con personajes secundarios. El personaje principal habitual de la aplicación está ausente y no puede hablar, actuar, pensar ni enterarse de esta conversación. Interpreta al interlocutor actual y, si la escena lo justifica, permite que otra persona de la lista de presentes intervenga; no inventes llegadas ni cambies de lugar. Mantén la continuidad del historial, distingue quién está presente y quién habla, y permite que los personajes secundarios tengan iniciativa propia sin decidir las acciones ni sentimientos del usuario. Sus personalidades pueden inspirarse en el nombre, pero no hace falta fidelidad canónica. Responde en español con una respuesta breve y natural. Devuelve solo un objeto JSON con speaker (exactamente el nombre de quien habla, elegido de la lista de presentes), reply (diálogo hablado, sin etiquetas ni asteriscos), npc_action (una acción observable breve en tercera persona, o cadena vacía) y scene_emotion (neutral, angry, affection, shy, surprised o sad). Si varias personas hablan en reply, antepone el nombre a cada línea de diálogo. No añadas memoria de Draconia ni describas acciones de ella. Si el usuario solo narró una acción y no habló, el personaje puede responder con una reacción apropiada. Contexto de la escena: " + scene_context
+        )
     providers = {
         "gemini": ("Gemini", "GEMINI_API_KEY", _gemini_answer),
         "groq": ("Groq", "GROQ_API_KEY", _groq_answer),
@@ -2710,12 +2800,19 @@ def chat():
             break
         try:
             turn_started = time.monotonic()
-            response = _request_with_recovery(name, provider, message, instructions, _style_examples(character) + history, deadline, failures, request_id)
+            response = _request_with_recovery(name, provider, message, instructions, (history if npc_scene else _style_examples(character) + history), deadline, failures, request_id)
             response.update(_dialogue_response(response["reply"], character))
             if event == "departure":
                 plan = response.get("absence_plan") or {}
                 response["absence_plan"] = {"return_after_minutes": max(5, min(1440, int(plan.get("return_after_minutes", 90)))), "destination": str(plan.get("destination", "un recado"))[:120]}
-            response = _ensure_scene_opening(provider, response, instructions, message, history, character, max(0.0, deadline - time.monotonic()))
+            if not npc_scene:
+                response = _ensure_scene_opening(provider, response, instructions, message, history, character, max(0.0, deadline - time.monotonic()))
+            else:
+                response['speaker'] = response.get('speaker') if response.get('speaker') in npc_scene['present'] else npc_scene['speaker']
+                response['npc_action'] = str(response.get('npc_action') or response.get('action') or '').replace('*', '').replace('<', '').replace('>', '').strip()[:240]
+                response.pop('scene_action', None)
+                response.pop('followup', None)
+                response.pop('memory', None)
             if isinstance(response.get("memory"), dict):
                 response["memory"].update(knowledge_version=2, known_by=[character])
             response["chat_mode"] = chat_mode or ("role" if preference == "openrouter" else "normal")
@@ -2723,7 +2820,7 @@ def chat():
             response["routing_attempts"] = failures
             response["preferred_brain"] = enabled[0][0]
             response["request_id"] = request_id
-            response["build"] = "conversacion-17-atuendos-20261121"
+            response["build"] = "conversacion-17-interlocutores-v1-20261121"
             return jsonify(response)
         except (HTTPError, URLError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError) as error:
             detail = _failure_detail(name, error)
