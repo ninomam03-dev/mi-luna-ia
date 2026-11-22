@@ -1,16 +1,16 @@
 {
   "camisa-idle.webp": {
     "scale": 1.01685,
-    "x": 0.00702,
-    "y": 0.00281,
+    "x": -0.08567,
+    "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "camisa-listen.webp": {
     "scale": 1.01685,
-    "x": 0.00702,
-    "y": 0.00281,
+    "x": -0.08567,
+    "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
@@ -192,16 +192,16 @@
     "cut": 1
   },
   "corset-marfil-idle.webp": {
-    "scale": 1.00836,
-    "x": 0.01532,
+    "scale": 1.01117,
+    "x": -0.09078,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "corset-marfil-listen.webp": {
-    "scale": 1.00836,
-    "x": 0.01532,
+    "scale": 1.01117,
+    "x": -0.09078,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
@@ -240,17 +240,17 @@
     "cut": 1
   },
   "cafe-casual-idle.webp": {
-    "scale": 1.01972,
-    "x": -0.03944,
-    "y": 0.01408,
+    "scale": 1.0226,
+    "x": -0.03672,
+    "y": 0.0113,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "cafe-casual-listen.webp": {
-    "scale": 1.01972,
-    "x": -0.03944,
-    "y": 0.01408,
+    "scale": 1.0226,
+    "x": -0.03672,
+    "y": 0.0113,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
@@ -288,17 +288,17 @@
     "cut": 1
   },
   "biker-v6-idle.webp": {
-    "scale": 1.01117,
-    "x": 0.01257,
-    "y": 0.00559,
+    "scale": 1.00836,
+    "x": -0.07521,
+    "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "biker-v6-listen.webp": {
-    "scale": 1.01117,
-    "x": 0.01257,
-    "y": 0.00559,
+    "scale": 1.00836,
+    "x": -0.07521,
+    "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
@@ -336,17 +336,17 @@
     "cut": 1
   },
   "bolero-noche-v6-idle.webp": {
-    "scale": 1.0226,
-    "x": -0.03249,
-    "y": 0.01412,
+    "scale": 1.01401,
+    "x": -0.01541,
+    "y": 0.0056,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "bolero-noche-v6-listen.webp": {
-    "scale": 1.0226,
-    "x": -0.03249,
-    "y": 0.01412,
+    "scale": 1.01401,
+    "x": -0.01541,
+    "y": 0.0056,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
@@ -384,17 +384,17 @@
     "cut": 1
   },
   "camisa-hombros-v6-idle.webp": {
-    "scale": 1.01117,
-    "x": -0.02793,
-    "y": 0.00559,
+    "scale": 1.00556,
+    "x": -0.00278,
+    "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "camisa-hombros-v6-listen.webp": {
-    "scale": 1.01117,
-    "x": -0.02793,
-    "y": 0.00559,
+    "scale": 1.00556,
+    "x": -0.00278,
+    "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
@@ -432,40 +432,40 @@
     "cut": 1
   },
   "corset-chaqueta-v6-idle.webp": {
-    "scale": 1.00277,
-    "x": 0.0374,
-    "y": 0.00277,
+    "scale": 1.00556,
+    "x": -0.0625,
+    "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "corset-chaqueta-v6-listen.webp": {
-    "scale": 1.00277,
-    "x": 0.0374,
-    "y": 0.00277,
+    "scale": 1.00556,
+    "x": -0.0625,
+    "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "corset-chaqueta-v6-proud.webp": {
-    "scale": 1.00277,
-    "x": 0.0374,
-    "y": 0.00277,
+    "scale": 1.00836,
+    "x": 0.0376,
+    "y": 0.00279,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "corset-chaqueta-v6-angry.webp": {
-    "scale": 1.00277,
-    "x": -0.06233,
+    "scale": 1.00556,
+    "x": -0.0625,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "corset-chaqueta-v6-shy.webp": {
-    "scale": 1.00277,
-    "x": -0.06233,
+    "scale": 1.00556,
+    "x": -0.0625,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
@@ -480,17 +480,17 @@
     "cut": 1
   },
   "gala-cristal-v6-idle.webp": {
-    "scale": 1.01117,
-    "x": -0.06145,
-    "y": 0.00559,
+    "scale": 1.00836,
+    "x": -0.07103,
+    "y": 0.00279,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "gala-cristal-v6-listen.webp": {
-    "scale": 1.01117,
-    "x": -0.06145,
-    "y": 0.00559,
+    "scale": 1.00836,
+    "x": -0.07103,
+    "y": 0.00279,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
@@ -512,39 +512,39 @@
     "cut": 1
   },
   "gala-cristal-v6-shy.webp": {
-    "scale": 1.00836,
-    "x": -0.06964,
-    "y": 0.00557,
+    "scale": 1.01117,
+    "x": -0.06983,
+    "y": 0.00559,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "gala-cristal-v6-quiet.webp": {
-    "scale": 1.00556,
-    "x": -0.07083,
-    "y": 0.00278,
+    "scale": 1.00836,
+    "x": -0.07103,
+    "y": 0.00279,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "gala-terciopelo-v5-idle.webp": {
-    "scale": 1.0,
-    "x": 0.0,
+    "scale": 1.00556,
+    "x": -0.07639,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "gala-terciopelo-v5-listen.webp": {
-    "scale": 1.0,
-    "x": 0.0,
+    "scale": 1.00556,
+    "x": -0.07639,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "gala-terciopelo-v5-proud.webp": {
-    "scale": 1.0,
+    "scale": 1.00556,
     "x": 0.0,
     "y": 0.0,
     "ratio": 1.0,
@@ -552,168 +552,168 @@
     "cut": 1
   },
   "gala-terciopelo-v5-angry.webp": {
-    "scale": 1.0,
-    "x": -0.07459,
+    "scale": 1.00556,
+    "x": -0.075,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "gala-terciopelo-v5-shy.webp": {
-    "scale": 1.0,
-    "x": -0.07459,
+    "scale": 1.00556,
+    "x": -0.075,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "gala-terciopelo-v5-quiet.webp": {
-    "scale": 1.0,
-    "x": -0.07597,
+    "scale": 1.00556,
+    "x": -0.07639,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "halter-dorado-v5-idle.webp": {
-    "scale": 1.00277,
-    "x": 0.03878,
+    "scale": 1.00556,
+    "x": -0.08056,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "halter-dorado-v5-listen.webp": {
-    "scale": 1.00277,
-    "x": 0.03878,
+    "scale": 1.00556,
+    "x": -0.08056,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "halter-dorado-v5-proud.webp": {
-    "scale": 1.00277,
-    "x": 0.03878,
+    "scale": 1.00556,
+    "x": 0.03889,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "halter-dorado-v5-angry.webp": {
-    "scale": 1.0,
-    "x": -0.08011,
+    "scale": 1.00556,
+    "x": -0.08056,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "halter-dorado-v5-shy.webp": {
-    "scale": 1.0,
-    "x": -0.07873,
+    "scale": 1.00556,
+    "x": -0.07917,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "halter-dorado-v5-quiet.webp": {
-    "scale": 1.0,
-    "x": -0.08011,
+    "scale": 1.00556,
+    "x": -0.08056,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "denim-noche-v5-idle.webp": {
-    "scale": 1.0,
-    "x": -0.03315,
+    "scale": 1.00556,
+    "x": -0.05417,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "denim-noche-v5-listen.webp": {
-    "scale": 1.0,
-    "x": -0.03315,
+    "scale": 1.00556,
+    "x": -0.05417,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "denim-noche-v5-proud.webp": {
-    "scale": 1.0,
-    "x": -0.03315,
+    "scale": 1.00556,
+    "x": -0.03333,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "denim-noche-v5-angry.webp": {
-    "scale": 1.0,
-    "x": -0.05387,
+    "scale": 1.00556,
+    "x": -0.05417,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "denim-noche-v5-shy.webp": {
-    "scale": 1.0,
-    "x": -0.05387,
+    "scale": 1.00556,
+    "x": -0.05417,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "denim-noche-v5-quiet.webp": {
-    "scale": 1.0,
-    "x": -0.05387,
+    "scale": 1.00556,
+    "x": -0.05417,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "cuero-esmeralda-v5-idle.webp": {
-    "scale": 1.00277,
-    "x": -0.07064,
+    "scale": 1.00556,
+    "x": -0.04167,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "cuero-esmeralda-v5-listen.webp": {
-    "scale": 1.00277,
-    "x": -0.07064,
+    "scale": 1.00556,
+    "x": -0.04167,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "cuero-esmeralda-v5-proud.webp": {
-    "scale": 1.00277,
-    "x": -0.07064,
+    "scale": 1.00556,
+    "x": -0.07083,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "cuero-esmeralda-v5-angry.webp": {
-    "scale": 1.0,
-    "x": -0.04006,
+    "scale": 1.00556,
+    "x": -0.04028,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "cuero-esmeralda-v5-shy.webp": {
-    "scale": 1.0,
-    "x": -0.04144,
+    "scale": 1.00556,
+    "x": -0.04167,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "cuero-esmeralda-v5-quiet.webp": {
-    "scale": 1.0,
-    "x": -0.04144,
+    "scale": 1.00556,
+    "x": -0.04167,
     "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
@@ -721,7 +721,7 @@
   },
   "kimono-moderno-v6-idle.webp": {
     "scale": 1.01685,
-    "x": -0.07584,
+    "x": -0.09551,
     "y": 0.00281,
     "ratio": 1.0,
     "bottom": 1,
@@ -729,7 +729,7 @@
   },
   "kimono-moderno-v6-listen.webp": {
     "scale": 1.01685,
-    "x": -0.07584,
+    "x": -0.09551,
     "y": 0.00281,
     "ratio": 1.0,
     "bottom": 1,
@@ -768,17 +768,17 @@
     "cut": 1
   },
   "desayuno-idle.webp": {
-    "scale": 1.00836,
-    "x": -0.06964,
-    "y": 0.00279,
+    "scale": 1.00556,
+    "x": -0.06528,
+    "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
   },
   "desayuno-listen.webp": {
-    "scale": 1.00836,
-    "x": -0.06964,
-    "y": 0.00279,
+    "scale": 1.00556,
+    "x": -0.06528,
+    "y": 0.0,
     "ratio": 1.0,
     "bottom": 1,
     "cut": 1
